@@ -8,6 +8,7 @@ import {
   SyncHistoryEntry,
   AuthStatus,
 } from '../shared/messages';
+import { validateImageUrl, validateUrl } from '../shared/security';
 
 // DOM Elements
 const loginView = document.getElementById('login-view')!;
@@ -80,17 +81,24 @@ function showMainView(auth: AuthStatus): void {
 
   // Handle avatar display
   if (auth.profileImageUrl) {
-    console.log('[Popup] Setting avatar image:', auth.profileImageUrl);
-    userAvatarImg.src = auth.profileImageUrl;
-    userAvatarImg.classList.remove('hidden');
-    userAvatarFallback.classList.add('hidden');
+    console.log('[Popup] Setting avatar image');
+    try {
+      // Validate URL to prevent XSS via javascript: or data: URIs
+      const safeUrl = validateImageUrl(auth.profileImageUrl, ['garmin.com', 'amazonaws.com']);
+      userAvatarImg.src = safeUrl;
+      userAvatarImg.classList.remove('hidden');
+      userAvatarFallback.classList.add('hidden');
 
-    // Fallback to SVG if image fails to load
-    userAvatarImg.onerror = () => {
-      console.log('[Popup] Avatar image failed to load, showing fallback');
+      userAvatarImg.onerror = () => {
+        console.log('[Popup] Avatar image failed to load, showing fallback');
+        userAvatarImg.classList.add('hidden');
+        userAvatarFallback.classList.remove('hidden');
+      };
+    } catch (error) {
+      console.warn('[Popup] Invalid profile image URL, using fallback');
       userAvatarImg.classList.add('hidden');
       userAvatarFallback.classList.remove('hidden');
-    };
+    }
   } else {
     console.log('[Popup] No profile image URL, showing SVG fallback');
     userAvatarImg.classList.add('hidden');
@@ -172,6 +180,7 @@ async function loadSyncHistory(): Promise<void> {
 
 function renderSyncHistory(history: SyncHistoryEntry[]): void {
   if (history.length === 0) {
+    // lgtm[js/dom-xss] - Static text, no user-controlled data
     syncHistoryContainer.innerHTML = '<div class="history-empty">No routes synced yet</div>';
     return;
   }
@@ -179,6 +188,7 @@ function renderSyncHistory(history: SyncHistoryEntry[]): void {
   // Show only last 5 entries
   const recentHistory = history.slice(0, 5);
 
+  // lgtm[js/dom-xss] - HTML structure with properly escaped user data (escapeHtml on line 207), static SVG icons, hardcoded Garmin URLs
   syncHistoryContainer.innerHTML = recentHistory
     .map(entry => {
       const date = new Date(entry.syncedAt);
@@ -300,7 +310,13 @@ async function handleSyncRoute(): Promise<void> {
 function showSyncSuccess(courseUrl?: string): void {
   syncResult.className = 'sync-result success';
   if (courseUrl) {
-    syncResult.innerHTML = `Route synced! <a href="${courseUrl}" target="_blank">View in Garmin Connect</a>`;
+    try {
+      const safeUrl = validateUrl(courseUrl, ['garmin.com']);
+      // lgtm[js/dom-xss] - Static text with validated URL from Garmin API
+      syncResult.innerHTML = `Route synced! <a href="${safeUrl}" target="_blank">View in Garmin Connect</a>`;
+    } catch {
+      syncResult.textContent = 'Route synced successfully!';
+    }
   } else {
     syncResult.textContent = 'Route synced successfully!';
   }

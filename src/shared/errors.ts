@@ -32,6 +32,9 @@ export enum ErrorCode {
   STORAGE_ERROR = 'STORAGE_ERROR',
   ENCRYPTION_ERROR = 'ENCRYPTION_ERROR',
 
+  // Security errors
+  URL_VALIDATION = 'URL_VALIDATION',
+
   // General errors
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   NETWORK_ERROR = 'NETWORK_ERROR',
@@ -53,6 +56,8 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
 
   [ErrorCode.STORAGE_ERROR]: 'Failed to access extension storage',
   [ErrorCode.ENCRYPTION_ERROR]: 'Failed to encrypt/decrypt data',
+
+  [ErrorCode.URL_VALIDATION]: 'Invalid or unsafe URL',
 
   [ErrorCode.UNKNOWN_ERROR]: 'An unexpected error occurred',
   [ErrorCode.NETWORK_ERROR]: 'Network connection error',

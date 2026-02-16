@@ -3,6 +3,7 @@
 
 import { MapyGarminError, ErrorCode } from '../shared/errors';
 import { saveAuthToken, getAuthToken, clearAuthToken } from '../lib/storage';
+import { validateImageUrl } from '../shared/security';
 
 const GARMIN_CONNECT_URL = 'https://connect.garmin.com';
 
@@ -347,7 +348,17 @@ export function extractSocialProfileFromHtml(html: string): { displayName: strin
     }
 
     // Extract profile image URL (prefer small, fallback to medium)
-    const profileImageUrl = profile.profileImageUrlSmall || profile.profileImageUrlMedium;
+    let profileImageUrl = profile.profileImageUrlSmall || profile.profileImageUrlMedium;
+
+    // Validate as defense-in-depth (primary protection is in popup.ts)
+    if (profileImageUrl) {
+      try {
+        profileImageUrl = validateImageUrl(profileImageUrl, ['garmin.com', 'amazonaws.com']);
+      } catch (error) {
+        console.warn('[Garmin Auth] Invalid profile image URL from API, discarding');
+        profileImageUrl = undefined;
+      }
+    }
 
     const result = {
       displayName: profile.fullName,

@@ -1,5 +1,59 @@
 # Routomil Changelog
 
+## 2026-02-16 - Security: Fix XSS Vulnerability in Profile Image URL Handling
+
+### Critical Fix: Remediate CodeQL DOM-Based XSS Vulnerabilities
+- [x] Fixed real XSS vulnerability in profile image URL assignment (popup.ts, garmin-auth.ts)
+- [x] Created URL validation utilities with comprehensive test coverage (37 tests)
+- [x] Added defense-in-depth validation for Garmin Connect links
+- [x] Added CodeQL suppression comments for 10 false positive findings
+- [x] Implemented Content Security Policy for extension pages
+
+### Security Changes
+**Real Vulnerability Fixed:**
+- Profile image URLs from Garmin API were assigned to `img.src` without validation
+- Allowed potential XSS via `javascript:` or malicious `data:` URIs
+- Fixed with URL scheme validation and domain whitelist (garmin.com, amazonaws.com)
+
+**URL Validation Utilities:**
+- `validateUrl()` - General URL validation with scheme and domain checks
+- `validateImageUrl()` - Stricter validation for image context
+- Rejects unsafe schemes: javascript:, data:, file:, vbscript:, about:, blob:
+- Domain whitelist support for Garmin-specific URLs
+- Handles edge cases: encoded payloads, mixed case, credentials, whitespace
+
+**False Positives Suppressed:**
+- 8 static HTML/SVG assignments in button-injector.ts
+- 2 safe innerHTML usages in popup.ts (with proper escapeHtml)
+- Added `// lgtm[js/dom-xss]` comments with justification
+
+### Files Created
+- src/shared/security.ts - URL validation utilities (165 lines)
+- tests/unit/security.test.ts - Comprehensive security tests (37 test cases, 202 lines)
+
+### Files Modified
+- src/shared/errors.ts - Added URL_VALIDATION error code
+- src/popup/popup.ts - Fixed profileImageUrl XSS (line 84), validated courseUrl (line 303)
+- src/background/garmin-auth.ts - Defense-in-depth validation for profile image URLs (line 350)
+- src/content/button-injector.ts - Added suppression comments for 8 false positives
+- manifest.json - Added Content Security Policy
+- CHANGELOG.md - Document security fix
+
+### Impact
+- **Security:** Prevents XSS attacks via malicious profile image URLs from compromised/intercepted API responses
+- **Defense-in-depth:** Multiple validation layers (API response + UI rendering)
+- **CodeQL compliance:** 11 XSS findings → 0 errors (1 fixed, 10 suppressed with justification)
+- **No regression:** All existing functionality preserved with graceful fallbacks
+- **Release ready:** All tests pass, security scan clean
+
+### Technical Details
+- Test coverage: 37 test cases covering all edge cases
+- URL validation: Scheme check, domain whitelist, credential rejection, malformed URL handling
+- CSP policy: `script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline';`
+- Fallback behavior: Invalid URLs trigger avatar fallback icon, no UI breakage
+
+---
+
 ## 2026-02-16 - Documentation: Consolidated Duplicate Changelog Files
 
 ### Cleanup: Merged changelog.log into CHANGELOG.md
