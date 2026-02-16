@@ -7,6 +7,10 @@ module.exports = {
     '**/?(*.)+(spec|test).ts',
     '**/tests/**/*.test.js'
   ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/tests/e2e/' // Exclude E2E tests (require puppeteer, run separately)
+  ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },

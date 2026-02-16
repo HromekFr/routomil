@@ -88,6 +88,7 @@ describe('CSRF Token Extraction', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
+        url: 'https://connect.garmin.com/modern',
         text: async () => mockHtml,
       });
 
@@ -128,6 +129,7 @@ describe('CSRF Token Extraction', () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 401,
+        url: 'https://connect.garmin.com/modern',
         text: async () => 'Unauthorized',
       });
 
@@ -138,6 +140,7 @@ describe('CSRF Token Extraction', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
+        url: 'https://connect.garmin.com/modern',
         text: async () => '<html><body>No token here</body></html>',
       });
 
@@ -148,6 +151,7 @@ describe('CSRF Token Extraction', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
+        url: 'https://connect.garmin.com/modern',
         text: async () => '<meta name="csrf-token" content="token">',
       });
 
