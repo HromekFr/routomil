@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Routomil",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Sync your planned routes from Mapy.cz to Garmin Connect with one click",
   "icons": {
     "16": "assets/icons/icon16.png",
@@ -29,8 +29,12 @@
         "https://en.mapy.cz/*",
         "https://mapy.com/*"
       ],
-      "js": ["mapy-content.js"],
-      "css": ["mapy-content.css"],
+      "js": [
+        "mapy-content.js"
+      ],
+      "css": [
+        "mapy-content.css"
+      ],
       "run_at": "document_idle"
     }
   ],
