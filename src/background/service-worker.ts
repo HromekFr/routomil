@@ -2,7 +2,9 @@
 
 import { login, logout, checkAuth, getCsrfToken } from './garmin-auth';
 import { uploadCourse, getCourseUrl } from './garmin-api';
-import { convertGpxToGarminCourse } from '../lib/gpx-parser';
+import { parseGpx, convertGpxToGarminCourse } from '../lib/gpx-parser';
+import { fetchGpxFromMapy } from '../lib/mapy-api';
+import type { MapyRouteParams } from '../lib/mapy-url-parser';
 import {
   getSyncHistory,
   addSyncHistoryEntry,
@@ -12,10 +14,10 @@ import {
 import {
   BackgroundMessage,
   BackgroundResponse,
-  RouteData,
   SyncHistoryEntry,
+  type ActivityType,
 } from '../shared/messages';
-import { MapyGarminError, ErrorCode, getErrorMessage } from '../shared/errors';
+import { MapyGarminError, ErrorCode } from '../shared/errors';
 
 // Handle messages from content script and popup
 chrome.runtime.onMessage.addListener(
@@ -50,8 +52,8 @@ async function handleMessage(message: BackgroundMessage): Promise<BackgroundResp
     case 'CHECK_AUTH':
       return handleCheckAuth();
 
-    case 'SYNC_ROUTE':
-      return handleSyncRoute(message.route);
+    case 'SYNC_ROUTE_FROM_URL':
+      return handleSyncRouteFromUrl(message.routeParams, message.routeName, message.activityType);
 
     case 'GET_SYNC_HISTORY':
       return handleGetSyncHistory();
@@ -89,35 +91,42 @@ async function handleCheckAuth(): Promise<BackgroundResponse> {
   return { success: true, data: auth };
 }
 
-async function handleSyncRoute(route: RouteData): Promise<BackgroundResponse> {
+async function handleSyncRouteFromUrl(
+  routeParams: MapyRouteParams,
+  routeName: string,
+  activityType: ActivityType
+): Promise<BackgroundResponse> {
   const entryId = crypto.randomUUID();
   const entry: SyncHistoryEntry = {
     id: entryId,
-    routeName: route.name,
-    activityType: route.activityType,
+    routeName,
+    activityType,
     syncedAt: Date.now(),
     success: false,
   };
 
   try {
-    // Get parsed route from content script
-    if (!route.parsedRoute) {
-      throw new MapyGarminError('No parsed route data provided', ErrorCode.GPX_PARSE_ERROR);
-    }
+    console.log('Starting route sync from URL parameters');
 
-    const gpxRoute = route.parsedRoute;
+    // Step 1: Fetch GPX from Mapy.cz API
+    const gpxContent = await fetchGpxFromMapy(routeParams);
+
+    // Step 2: Parse GPX (now using xmldom, works in service worker)
+    const gpxRoute = parseGpx(gpxContent);
 
     if (gpxRoute.points.length === 0) {
       throw new MapyGarminError('Route has no points', ErrorCode.GPX_PARSE_ERROR);
     }
 
-    // Step 1: Get CSRF token
+    console.log(`Parsed route: ${gpxRoute.points.length} points, ${gpxRoute.totalDistance.toFixed(0)}m`);
+
+    // Step 3: Get CSRF token
     const csrfToken = await getCsrfToken();
 
-    // Step 2: Convert GPX to Garmin Course JSON
-    const courseData = convertGpxToGarminCourse(gpxRoute, route.activityType);
+    // Step 4: Convert GPX to Garmin Course JSON
+    const courseData = convertGpxToGarminCourse(gpxRoute, activityType);
 
-    // Step 3: Upload to Garmin
+    // Step 5: Upload to Garmin
     const { courseId } = await uploadCourse(courseData, csrfToken);
 
     // Success
@@ -127,6 +136,8 @@ async function handleSyncRoute(route: RouteData): Promise<BackgroundResponse> {
 
     // Notify any open tabs about success
     notifyTabs({ type: 'SYNC_STATUS', status: 'success', message: getCourseUrl(courseId) });
+
+    console.log('Route sync completed successfully:', courseId);
 
     return {
       success: true,
@@ -142,6 +153,8 @@ async function handleSyncRoute(route: RouteData): Promise<BackgroundResponse> {
         : error instanceof Error
           ? error.message
           : 'Unknown error';
+
+    console.error('Route sync failed:', errorMessage);
 
     entry.errorMessage = errorMessage;
     await addSyncHistoryEntry(entry);
@@ -182,23 +195,6 @@ function notifyTabs(message: { type: string; status: string; message?: string })
     }
   });
 }
-
-// Monitor GPX downloads for potential future extraction method
-chrome.downloads.onCreated.addListener((downloadItem) => {
-  if (downloadItem.filename?.toLowerCase().endsWith('.gpx')) {
-    console.log('GPX download detected:', downloadItem.filename);
-    // Cache the download ID for potential retrieval
-    chrome.storage.session.set({
-      lastGpxDownload: {
-        id: downloadItem.id,
-        filename: downloadItem.filename,
-        timestamp: Date.now()
-      }
-    }).catch((error) => {
-      console.error('Failed to cache GPX download info:', error);
-    });
-  }
-});
 
 // Log when service worker starts
 console.log('Mapy.cz → Garmin Sync service worker started');

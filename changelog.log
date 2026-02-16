@@ -1,5 +1,99 @@
 # Routomil Changelog
 
+## 2026-02-16 - Direct API Integration: Replaced DOM-based GPX Extraction
+
+### Feature: URL-based Route Extraction via Mapy.cz Export API
+- [x] Replaced 515 lines of DOM button-clicking with direct API calls
+- [x] Created URL parser for Mapy.cz route parameters (rc, rs, ri, mrp, rwp)
+- [x] Integrated Mapy.cz tplannerexport API client
+- [x] Migrated gpx-parser.ts to use xmldom (service worker compatible)
+- [x] Removed downloads permission from manifest
+- [x] Simplified message flow: content script sends URL params → service worker fetches GPX
+
+### Files Created
+- src/lib/mapy-url-parser.ts - Parse Mapy.cz URLs, extract route params, build API URLs
+- src/lib/mapy-api.ts - Fetch GPX directly from Mapy.cz API
+- tests/mapy-url-parser.test.ts - URL parser tests with real test data
+
+### Files Modified
+- src/lib/gpx-parser.ts - Switched from browser DOMParser to xmldom for service worker compatibility
+- src/shared/messages.ts - Added SYNC_ROUTE_FROM_URL message, removed SYNC_ROUTE and RouteData
+- src/background/service-worker.ts - New handleSyncRouteFromUrl(), removed download listener
+- src/content/mapy-content.ts - Parse URL params instead of DOM extraction
+- src/content/route-extractor.ts - Gutted to 56 lines, kept only extractRouteName()
+- manifest.json - Removed "downloads" permission
+
+### Impact
+- **Reliability:** No more DOM fragility - deterministic API calls
+- **Simplicity:** ~460 lines of DOM manipulation removed
+- **Performance:** Direct fetch instead of simulating button clicks and intercepting downloads
+- **Service worker:** GPX parsing now works in background (xmldom instead of browser DOMParser)
+- **No downloads:** Route data never triggers browser download, cleaner UX
+
+### Technical Details
+- URL parsing: rc split into 10-char chunks → rg[], rs[], ri[], rp_c, rp_aw
+- API endpoint: https://mapy.com/api/tplannerexport
+- No authentication required (public API)
+- xmldom replaces browser DOMParser for service worker compatibility
+- querySelector/querySelectorAll → getElementsByTagName conversion
+- Message flow: EXTRACT_AND_SYNC → parseMapyUrl() → SYNC_ROUTE_FROM_URL → fetchGpxFromMapy()
+
+### Breaking Changes
+- None (transparent internal change, same user-facing workflow)
+
+---
+
+## 2026-02-16 - Testing Conventions Update
+
+### Documentation: Added Minimal TDD Guidelines to CLAUDE.md
+- [x] Added Testing section to Conventions in CLAUDE.md
+- [x] Specified minimal TDD approach for major implementation changes
+- [x] Guidelines: Write failing test → implement → refactor
+- [x] Minor changes and bug fixes can have tests after implementation
+- [x] Files modified: CLAUDE.md
+
+### Impact
+- **Developer workflow:** Clear testing strategy for major vs minor changes
+- No code changes
+
+---
+
+## 2026-02-16 - Mapy.cz Export API Test Script
+
+### Feature: Direct API Call Test for Route Export
+- [x] Created test-mapy-export-api.js - standalone test script for Mapy.cz export API
+- [x] Discovered endpoint: https://mapy.com/api/tplannerexport
+- [x] **SOLVED: rc → rg coordinate encoding** - Split rc into 10-character chunks
+- [x] **SOLVED: rwp → rp_aw parameter mapping** - URL parameter rwp becomes API parameter rp_aw
+- [x] Test scenarios:
+  - Direct API call with known parameters (export=gpx, rg, rs, ri, rp_c, rp_aw)
+  - Auth requirement test (confirms public API, no cookies needed)
+  - Minimal parameter exploration (all params required)
+  - URL parameter extraction with rc→rg splitting (parseMapyUrl, splitRcToRg functions)
+  - GPX validation (xmldom parsing, statistics calculation)
+- [x] Files created:
+  - test-mapy-export-api.js
+- [x] Files modified:
+  - package.json (added `test:mapy` script)
+
+### Impact
+- **Research:** Validates that Mapy.cz export API can be called directly without clicking Export button
+- **Developer workflow:** Run `npm run test:mapy` to test API endpoint
+- **Next steps:** Can integrate direct API call into extension to replace DOM button-clicking approach
+- **Encoding solved:** rc parameter splits into 10-char chunks to create rg values (e.g., rc=9hChxxXvtO95rPhx1qo5 → rg=9hChxxXvtO, rg=95rPhx1qo5)
+
+### Technical Details
+- No authentication required (public API)
+- Returns valid GPX XML with track points
+- **Required params:** export=gpx, rg (split from rc), rs, ri, rp_c
+- **Optional params:** lang, rp_aw (mapped from rwp)
+- URL parameter extraction from Mapy.cz planning URLs with rc→rg splitting
+- Haversine distance calculation for GPX statistics
+- Uses xmldom parser (already a dependency)
+- Tested with 2-waypoint (Prague-Liberec, 128km) and 5-waypoint routes
+
+---
+
 ## 2026-02-16 - CLAUDE.md Rewrite
 
 ### Refactor: Condensed CLAUDE.md from 623 to 84 lines

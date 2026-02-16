@@ -1,9 +1,9 @@
 // Main content script for mapy.cz
 
 import './mapy-content.css';
-import { hasRoute, extractGpx, extractRouteName } from './route-extractor';
+import { extractRouteName } from './route-extractor';
+import { parseMapyUrl, hasRouteParams } from '../lib/mapy-url-parser';
 import { ActivityType, BackgroundResponse } from '../shared/messages';
-import { parseGpx } from '../lib/gpx-parser';
 
 // Initialize when DOM is ready
 function initialize(): void {
@@ -20,32 +20,28 @@ async function handleSyncFromPopup(activityType: ActivityType): Promise<{ succes
       return { success: false, error: 'Please log in to Garmin Connect in the extension popup' };
     }
 
-    // Extract GPX data
-    const routeData = await extractGpx();
-    if (!routeData) {
-      return { success: false, error: 'Could not extract route data. Try using the GPX export feature on mapy.cz.' };
+    // Parse route parameters from current URL
+    const currentUrl = window.location.href;
+    if (!hasRouteParams(currentUrl)) {
+      return { success: false, error: 'No route found in current URL. Please plan a route first.' };
     }
 
-    // Parse GPX in content script context (where DOMParser is available)
-    let parsedRoute;
-    try {
-      parsedRoute = parseGpx(routeData.gpxContent);
-      if (parsedRoute.points.length === 0) {
-        return { success: false, error: 'Route has no points' };
-      }
-    } catch (error) {
-      console.error('GPX parsing error:', error);
-      return { success: false, error: 'Failed to parse GPX data: ' + (error instanceof Error ? error.message : 'Unknown error') };
+    const routeParams = parseMapyUrl(currentUrl);
+    if (routeParams.rg.length === 0) {
+      return { success: false, error: 'Could not extract route coordinates from URL' };
     }
 
-    // Send parsed route to background for Course API upload
+    // Extract route name from page
+    const routeName = extractRouteName() || 'Mapy.cz Route';
+
+    console.log(`Parsed route with ${routeParams.rg.length} coordinate chunks`);
+
+    // Send route parameters to background for API fetch and upload
     const syncResponse = await sendMessage({
-      type: 'SYNC_ROUTE',
-      route: {
-        name: routeData.name,
-        parsedRoute: parsedRoute,
-        activityType,
-      },
+      type: 'SYNC_ROUTE_FROM_URL',
+      routeParams,
+      routeName,
+      activityType,
     });
 
     if (syncResponse.success) {
@@ -75,8 +71,9 @@ function sendMessage(message: unknown): Promise<BackgroundResponse> {
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((message: { type: string; activityType?: ActivityType }, _sender, sendResponse) => {
   if (message.type === 'CHECK_ROUTE') {
-    // Check if there's a route on the page
-    const routeExists = hasRoute();
+    // Check if there's a route in the URL
+    const currentUrl = window.location.href;
+    const routeExists = hasRouteParams(currentUrl);
     const routeName = routeExists ? extractRouteName() : null;
     sendResponse({
       hasRoute: routeExists,

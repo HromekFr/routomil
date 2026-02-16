@@ -1,5 +1,6 @@
 // GPX XML parser
 
+import { DOMParser } from 'xmldom';
 import type {
   GarminCourse,
   GarminGeoPoint,
@@ -34,66 +35,125 @@ export interface GpxRoute {
 
 export function parseGpx(gpxContent: string): GpxRoute {
   const parser = new DOMParser();
-  const doc = parser.parseFromString(gpxContent, 'application/xml');
+  const doc = parser.parseFromString(gpxContent, 'text/xml');
 
-  const parserError = doc.querySelector('parsererror');
-  if (parserError) {
-    throw new Error('Invalid GPX XML: ' + parserError.textContent);
+  // Check for parser errors
+  const parserErrors = doc.getElementsByTagName('parsererror');
+  if (parserErrors.length > 0) {
+    throw new Error('Invalid GPX XML: ' + parserErrors[0].textContent);
+  }
+
+  // Check for valid GPX root element
+  const gpxNodes = doc.getElementsByTagName('gpx');
+  if (gpxNodes.length === 0) {
+    throw new Error('Invalid GPX XML: No <gpx> root element found');
   }
 
   // Get route name from metadata or first track/route
-  const name =
-    doc.querySelector('metadata > name')?.textContent ||
-    doc.querySelector('trk > name')?.textContent ||
-    doc.querySelector('rte > name')?.textContent ||
-    'Unnamed Route';
+  let name = 'Unnamed Route';
+  const metadataNodes = doc.getElementsByTagName('metadata');
+  if (metadataNodes.length > 0) {
+    const nameNodes = metadataNodes[0].getElementsByTagName('name');
+    if (nameNodes.length > 0 && nameNodes[0].textContent) {
+      name = nameNodes[0].textContent;
+    }
+  }
+  if (name === 'Unnamed Route') {
+    const trkNodes = doc.getElementsByTagName('trk');
+    if (trkNodes.length > 0) {
+      const trkNameNodes = trkNodes[0].getElementsByTagName('name');
+      if (trkNameNodes.length > 0 && trkNameNodes[0].textContent) {
+        name = trkNameNodes[0].textContent;
+      }
+    }
+  }
+  if (name === 'Unnamed Route') {
+    const rteNodes = doc.getElementsByTagName('rte');
+    if (rteNodes.length > 0) {
+      const rteNameNodes = rteNodes[0].getElementsByTagName('name');
+      if (rteNameNodes.length > 0 && rteNameNodes[0].textContent) {
+        name = rteNameNodes[0].textContent;
+      }
+    }
+  }
 
-  const description =
-    doc.querySelector('metadata > desc')?.textContent ||
-    doc.querySelector('trk > desc')?.textContent ||
-    doc.querySelector('rte > desc')?.textContent;
+  // Get description
+  let description: string | undefined = undefined;
+  if (metadataNodes.length > 0) {
+    const descNodes = metadataNodes[0].getElementsByTagName('desc');
+    if (descNodes.length > 0 && descNodes[0].textContent) {
+      description = descNodes[0].textContent;
+    }
+  }
+  if (!description) {
+    const trkNodes = doc.getElementsByTagName('trk');
+    if (trkNodes.length > 0) {
+      const descNodes = trkNodes[0].getElementsByTagName('desc');
+      if (descNodes.length > 0 && descNodes[0].textContent) {
+        description = descNodes[0].textContent;
+      }
+    }
+  }
 
   // Extract track points (trkpt) or route points (rtept)
   const points: GpxPoint[] = [];
 
   // Try track segments first
-  const trkpts = doc.querySelectorAll('trkpt');
+  const trkpts = doc.getElementsByTagName('trkpt');
   if (trkpts.length > 0) {
-    trkpts.forEach(pt => {
-      const point = parsePointElement(pt);
+    for (let i = 0; i < trkpts.length; i++) {
+      const point = parsePointElement(trkpts[i]);
       if (point) points.push(point);
-    });
+    }
   } else {
     // Fall back to route points
-    const rtepts = doc.querySelectorAll('rtept');
-    rtepts.forEach(pt => {
-      const point = parsePointElement(pt);
+    const rtepts = doc.getElementsByTagName('rtept');
+    for (let i = 0; i < rtepts.length; i++) {
+      const point = parsePointElement(rtepts[i]);
       if (point) points.push(point);
-    });
+    }
   }
 
   // Extract waypoints
   const waypoints: GpxWaypoint[] = [];
-  const wpts = doc.querySelectorAll('wpt');
-  wpts.forEach(wpt => {
+  const wpts = doc.getElementsByTagName('wpt');
+  for (let i = 0; i < wpts.length; i++) {
+    const wpt = wpts[i];
     const point = parsePointElement(wpt);
     if (point) {
-      const wpName = wpt.querySelector('name')?.textContent || 'Waypoint';
+      let wpName = 'Waypoint';
+      const nameNodes = wpt.getElementsByTagName('name');
+      if (nameNodes.length > 0 && nameNodes[0].textContent) {
+        wpName = nameNodes[0].textContent;
+      }
+
+      let wpDesc: string | undefined = undefined;
+      const descNodes = wpt.getElementsByTagName('desc');
+      if (descNodes.length > 0 && descNodes[0].textContent) {
+        wpDesc = descNodes[0].textContent;
+      }
+
+      let wpType: string | undefined = undefined;
+      const typeNodes = wpt.getElementsByTagName('type');
+      if (typeNodes.length > 0 && typeNodes[0].textContent) {
+        wpType = typeNodes[0].textContent;
+      }
+
       waypoints.push({
         ...point,
         name: wpName,
-        description: wpt.querySelector('desc')?.textContent ?? undefined,
-        type: wpt.querySelector('type')?.textContent ?? undefined,
+        description: wpDesc,
+        type: wpType,
       });
     }
-  });
+  }
 
   // Calculate total distance and elevation gain
   const { totalDistance, totalElevationGain } = calculateRouteStats(points);
 
   return {
     name,
-    description: description ?? undefined,
+    description,
     points,
     waypoints,
     totalDistance,
@@ -107,15 +167,30 @@ function parsePointElement(element: Element): GpxPoint | null {
 
   if (isNaN(lat) || isNaN(lon)) return null;
 
-  const eleText = element.querySelector('ele')?.textContent;
-  const timeText = element.querySelector('time')?.textContent;
+  let ele: number | undefined = undefined;
+  const eleNodes = element.getElementsByTagName('ele');
+  if (eleNodes.length > 0 && eleNodes[0].textContent) {
+    ele = parseFloat(eleNodes[0].textContent);
+  }
+
+  let time: Date | undefined = undefined;
+  const timeNodes = element.getElementsByTagName('time');
+  if (timeNodes.length > 0 && timeNodes[0].textContent) {
+    time = new Date(timeNodes[0].textContent);
+  }
+
+  let name: string | undefined = undefined;
+  const nameNodes = element.getElementsByTagName('name');
+  if (nameNodes.length > 0 && nameNodes[0].textContent) {
+    name = nameNodes[0].textContent;
+  }
 
   return {
     lat,
     lon,
-    ele: eleText ? parseFloat(eleText) : undefined,
-    time: timeText ? new Date(timeText) : undefined,
-    name: element.querySelector('name')?.textContent ?? undefined,
+    ele,
+    time,
+    name,
   };
 }
 
