@@ -12,3 +12,9 @@ Thumbs.db
 *.swp
 *.swo
 routomil-v*.zip
+
+# CodeQL artifacts
+/tools/codeql/
+/codeql-db/
+/codeql-results/
+*.sarif

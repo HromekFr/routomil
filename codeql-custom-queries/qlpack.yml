@@ -1,0 +1,8 @@
+name: routomil/custom-security-queries
+version: 1.0.0
+description: Custom CodeQL security queries for Routomil Chrome extension
+dependencies:
+  codeql/javascript-all: "*"
+  codeql/javascript-queries: "*"
+library: false
+suites: codeql-suites
