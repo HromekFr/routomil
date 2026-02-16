@@ -61,6 +61,13 @@ Use `MapyGarminError` from `src/shared/errors.ts` with appropriate error codes. 
 ### Message Flow
 All cross-context communication uses `chrome.runtime.sendMessage` with typed messages defined in `src/shared/messages.ts`. Content script -> service worker -> popup.
 
+### Testing
+Use minimal TDD approach for major implementation changes:
+1. Write failing test that defines expected behavior
+2. Implement minimal code to make test pass
+3. Refactor if needed while keeping tests green
+4. For minor changes and bug fixes, tests after implementation is acceptable
+
 ## Before Starting Work
 
 1. Check `changelog.log` for recent context

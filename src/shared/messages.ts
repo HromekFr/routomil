@@ -1,17 +1,8 @@
 // Message types for communication between extension components
 
-import { GpxRoute } from '../lib/gpx-parser';
+import type { MapyRouteParams } from '../lib/mapy-url-parser';
 
 export type ActivityType = 'cycling' | 'hiking';
-
-export interface RouteData {
-  name: string;
-  gpxContent?: string;
-  parsedRoute?: GpxRoute;
-  activityType: ActivityType;
-  distance?: number;
-  elevation?: number;
-}
 
 export interface SyncHistoryEntry {
   id: string;
@@ -28,7 +19,7 @@ export type BackgroundMessage =
   | { type: 'LOGIN' }
   | { type: 'LOGOUT' }
   | { type: 'CHECK_AUTH' }
-  | { type: 'SYNC_ROUTE'; route: RouteData }
+  | { type: 'SYNC_ROUTE_FROM_URL'; routeParams: MapyRouteParams; routeName: string; activityType: ActivityType }
   | { type: 'GET_SYNC_HISTORY' }
   | { type: 'GET_SETTINGS' }
   | { type: 'SET_SETTINGS'; settings: Partial<ExtensionSettings> };

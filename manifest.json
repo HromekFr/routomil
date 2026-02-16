@@ -10,8 +10,7 @@
   },
   "permissions": [
     "storage",
-    "cookies",
-    "downloads"
+    "cookies"
   ],
   "host_permissions": [
     "https://mapy.cz/*",
