@@ -28,6 +28,7 @@ export function injectSyncButton(callbacks: SyncButtonCallbacks): void {
   // Create main button
   const button = document.createElement('button');
   button.className = 'mapy-garmin-sync-btn';
+  // lgtm[js/dom-xss] - Static SVG and HTML, no user-controlled data
   button.innerHTML = `
     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
@@ -38,6 +39,7 @@ export function injectSyncButton(callbacks: SyncButtonCallbacks): void {
   // Create dropdown arrow
   const dropdownArrow = document.createElement('button');
   dropdownArrow.className = 'mapy-garmin-sync-dropdown';
+  // lgtm[js/dom-xss] - Static SVG, no user-controlled data
   dropdownArrow.innerHTML = `
     <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
       <path d="M7 10l5 5 5-5z"/>
@@ -48,6 +50,7 @@ export function injectSyncButton(callbacks: SyncButtonCallbacks): void {
   const menu = document.createElement('div');
   menu.id = MENU_ID;
   menu.className = 'mapy-garmin-sync-menu hidden';
+  // lgtm[js/dom-xss] - Static menu HTML with hardcoded SVG icons, no user-controlled data
   menu.innerHTML = `
     <div class="menu-item" data-type="cycling">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
@@ -89,6 +92,7 @@ export function injectSyncButton(callbacks: SyncButtonCallbacks): void {
       // Update button text
       const icon = target.querySelector('svg')?.outerHTML || '';
       const text = target.querySelector('span')?.textContent || type;
+      // lgtm[js/dom-xss] - Composed from static menu SVG and text, no external input
       button.innerHTML = `${icon}<span>Sync as ${text}</span>`;
 
       callbacks.onSync(type);
@@ -165,6 +169,7 @@ export function updateButtonState(state: 'idle' | 'syncing' | 'success' | 'error
   switch (state) {
     case 'syncing':
       button.classList.add('syncing');
+      // lgtm[js/dom-xss] - Static SVG and text, no user-controlled data
       button.innerHTML = `
         <svg class="spinner" viewBox="0 0 24 24" width="16" height="16">
           <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="50" stroke-linecap="round"/>
@@ -175,6 +180,7 @@ export function updateButtonState(state: 'idle' | 'syncing' | 'success' | 'error
 
     case 'success':
       button.classList.add('success');
+      // lgtm[js/dom-xss] - Static SVG and text, no user-controlled data
       button.innerHTML = `
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
           <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
@@ -186,6 +192,7 @@ export function updateButtonState(state: 'idle' | 'syncing' | 'success' | 'error
 
     case 'error':
       button.classList.add('error');
+      // lgtm[js/dom-xss] - Static SVG and text, no user-controlled data
       button.innerHTML = `
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
@@ -197,6 +204,7 @@ export function updateButtonState(state: 'idle' | 'syncing' | 'success' | 'error
 
     case 'idle':
     default:
+      // lgtm[js/dom-xss] - Static SVG and text, no user-controlled data
       button.innerHTML = `
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
