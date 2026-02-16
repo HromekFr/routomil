@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Routomil",
+  "version": "1.0.0",
+  "description": "Sync your planned routes from Mapy.cz to Garmin Connect with one click",
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "permissions": [
+    "storage",
+    "cookies",
+    "downloads"
+  ],
+  "host_permissions": [
+    "https://mapy.cz/*",
+    "https://en.mapy.cz/*",
+    "https://mapy.com/*",
+    "https://sso.garmin.com/*",
+    "https://connect.garmin.com/*"
+  ],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://mapy.cz/*",
+        "https://en.mapy.cz/*",
+        "https://mapy.com/*"
+      ],
+      "js": ["mapy-content.js"],
+      "css": ["mapy-content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
+    }
+  }
+}

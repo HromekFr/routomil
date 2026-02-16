@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="https://mapy.com/">
+	<trk>
+		<name>Sample route along Vltava River, Prague</name>
+		<trkseg>
+			<trkpt lat="50.080390" lon="14.413562">
+				<ele>190.000000</ele>
+			</trkpt>
+			<trkpt lat="50.080812" lon="14.413198">
+				<ele>190.000000</ele>
+			</trkpt>
+			<trkpt lat="50.081234" lon="14.412834">
+				<ele>191.000000</ele>
+			</trkpt>
+			<trkpt lat="50.081656" lon="14.412470">
+				<ele>191.000000</ele>
+			</trkpt>
+			<trkpt lat="50.082078" lon="14.412106">
+				<ele>192.000000</ele>
+			</trkpt>
+			<trkpt lat="50.082500" lon="14.411742">
+				<ele>192.000000</ele>
+			</trkpt>
+			<trkpt lat="50.082922" lon="14.411378">
+				<ele>193.000000</ele>
+			</trkpt>
+			<trkpt lat="50.083344" lon="14.411014">
+				<ele>193.000000</ele>
+			</trkpt>
+			<trkpt lat="50.083766" lon="14.410650">
+				<ele>194.000000</ele>
+			</trkpt>
+			<trkpt lat="50.084188" lon="14.410286">
+				<ele>194.000000</ele>
+			</trkpt>
+			<trkpt lat="50.084610" lon="14.409922">
+				<ele>195.000000</ele>
+			</trkpt>
+			<trkpt lat="50.085032" lon="14.409558">
+				<ele>195.000000</ele>
+			</trkpt>
+			<trkpt lat="50.085454" lon="14.409194">
+				<ele>196.000000</ele>
+			</trkpt>
+			<trkpt lat="50.085876" lon="14.408830">
+				<ele>196.000000</ele>
+			</trkpt>
+			<trkpt lat="50.086298" lon="14.408466">
+				<ele>197.000000</ele>
+			</trkpt>
+			<trkpt lat="50.086720" lon="14.408102">
+				<ele>197.000000</ele>
+			</trkpt>
+			<trkpt lat="50.087142" lon="14.407738">
+				<ele>198.000000</ele>
+			</trkpt>
+			<trkpt lat="50.087564" lon="14.407374">
+				<ele>198.000000</ele>
+			</trkpt>
+			<trkpt lat="50.087986" lon="14.407010">
+				<ele>199.000000</ele>
+			</trkpt>
+			<trkpt lat="50.088408" lon="14.406646">
+				<ele>199.000000</ele>
+			</trkpt>
+		</trkseg>
+	</trk>
+</gpx>

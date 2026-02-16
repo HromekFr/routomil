@@ -1,0 +1,12 @@
+# Garmin Connect Cookies
+# Copy your cookies from Chrome DevTools > Application > Cookies > connect.garmin.com
+# Format: name=value (one per line)
+# Lines starting with # are ignored
+
+session=YOUR_LONG_SESSION_COOKIE_VALUE_HERE
+SESSIONID=YOUR_SESSIONID_VALUE_HERE
+JWT_WEB=YOUR_JWT_TOKEN_HERE
+
+# Optional but recommended:
+# GARMIN-SSO=1
+# GARMIN-SSO-CUST-GUID=your-guid-here

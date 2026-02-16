@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+cookies.txt
+*.fit
+.env
+.env.*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
