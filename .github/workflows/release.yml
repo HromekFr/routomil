@@ -28,11 +28,11 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
-      - name: Run unit tests
-        run: npm run test:coverage
-
       - name: Build extension
         run: npm run build:skip-tests
+
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
 
       - name: Run integration tests
         run: npm run test:integration
