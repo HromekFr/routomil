@@ -1,5 +1,60 @@
 # Routomil Changelog
 
+## 2026-02-16 - Feature: Display Real Garmin User Profile in Popup
+
+### User Experience: Real Name and Avatar Instead of Placeholder
+- [x] Extract user profile data from window.VIEWER_SOCIAL_PROFILE in Garmin Connect HTML
+- [x] Display real user name and profile photo in popup UI
+- [x] Graceful fallback to SVG icon if avatar image fails to load or doesn't exist
+- [x] Zero extra network requests (piggybacks on existing getCsrfToken() fetch)
+- [x] Pre-fetch profile data after login for immediate display
+
+### Implementation Details
+- Added extractSocialProfileFromHtml() function to parse VIEWER_SOCIAL_PROFILE JSON block
+- Extended AuthToken and AuthStatus interfaces with displayName and profileImageUrl
+- Updated getCsrfToken() to extract and save profile data alongside CSRF token
+- Updated checkAuth() to include profile data in authentication status
+- Modified login() to pre-fetch profile data via fire-and-forget getCsrfToken() call
+- Updated popup HTML with <img> element and SVG fallback
+- Updated popup.ts showMainView() to handle avatar display with onerror fallback
+- Added CSS styles for avatar-img with circular cropping
+
+### Files Modified
+- src/lib/storage.ts - Already had displayName and profileImageUrl in AuthToken (no change needed)
+- src/shared/messages.ts - Added displayName and profileImageUrl to AuthStatus interface
+- src/background/garmin-auth.ts - Added extractSocialProfileFromHtml(), updated getCsrfToken(), checkAuth(), login()
+- src/popup/popup.html - Added user-avatar-img element with fallback SVG
+- src/popup/popup.ts - Added DOM refs, updated showMainView() with avatar display logic
+- src/popup/popup.css - Added avatar-img styles with circular border-radius
+- tests/garmin-auth.test.ts - Added 8 tests for extractSocialProfileFromHtml()
+
+### Impact
+Users now see their real Garmin name and profile photo instead of generic "Garmin User" placeholder. Popup feels more personalized and confirms correct account connection. No performance impact - profile data extracted from HTML already being fetched for CSRF token.
+
+## 2026-02-16 - Refactor: Moved Integration Test Scripts
+
+### Organization: Improved Project Structure
+- Moved test-course-api.js to tests/integration/
+- Moved test-mapy-export-api.js to tests/integration/
+- Created tests/integration/README.md documenting both scripts
+- Updated package.json script paths (test:api, test:mapy)
+- Updated CLAUDE.md to reference new locations and added test:mapy command
+- Updated README.md: removed obsolete downloads permission, updated project structure, added integration test commands
+
+**Impact:** Cleaner root directory, better organization of manual integration tests vs automated Jest tests. Documentation now accurate.
+
+**Files Modified:**
+- package.json - Updated script paths
+- CLAUDE.md - Updated resource references, added test:mapy command
+- README.md - Removed downloads permission, updated "How It Works", updated project structure, added integration test commands
+
+**Files Moved:**
+- test-course-api.js → tests/integration/test-course-api.js
+- test-mapy-export-api.js → tests/integration/test-mapy-export-api.js
+
+**Files Created:**
+- tests/integration/README.md - Documentation for integration test scripts
+
 ## 2026-02-16 - Direct API Integration: Replaced DOM-based GPX Extraction
 
 ### Feature: URL-based Route Extraction via Mapy.cz Export API

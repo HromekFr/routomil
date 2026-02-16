@@ -3,7 +3,7 @@
  * Phase 2: TDD Implementation
  */
 
-import { extractCsrfTokenFromHtml, getCsrfToken } from '../src/background/garmin-auth';
+import { extractCsrfTokenFromHtml, extractSocialProfileFromHtml, getCsrfToken } from '../src/background/garmin-auth';
 
 describe('CSRF Token Extraction', () => {
   describe('extractCsrfTokenFromHtml', () => {
@@ -186,6 +186,149 @@ describe('CSRF Token Extraction', () => {
     it('should clear cache on logout', async () => {
       // Placeholder for cache clearing test
       expect(true).toBe(true);
+    });
+  });
+});
+
+describe('Social Profile Extraction', () => {
+  describe('extractSocialProfileFromHtml', () => {
+    it('should extract profile from valid VIEWER_SOCIAL_PROFILE block', () => {
+      const html = `
+        <html>
+          <head>
+            <script>
+              window.VIEWER_SOCIAL_PROFILE = {
+                "fullName": "John Doe",
+                "profileImageUrlSmall": "https://s3.amazonaws.com/avatar-small.jpg",
+                "profileImageUrlMedium": "https://s3.amazonaws.com/avatar-medium.jpg"
+              };
+            </script>
+          </head>
+        </html>
+      `;
+
+      const profile = extractSocialProfileFromHtml(html);
+
+      expect(profile).toEqual({
+        displayName: 'John Doe',
+        profileImageUrl: 'https://s3.amazonaws.com/avatar-small.jpg',
+      });
+    });
+
+    it('should return null when VIEWER_SOCIAL_PROFILE is missing', () => {
+      const html = `
+        <html>
+          <head>
+            <script>
+              window.OTHER_DATA = { foo: 'bar' };
+            </script>
+          </head>
+        </html>
+      `;
+
+      const profile = extractSocialProfileFromHtml(html);
+
+      expect(profile).toBeNull();
+    });
+
+    it('should return null when JSON is malformed', () => {
+      const html = `
+        <html>
+          <head>
+            <script>
+              window.VIEWER_SOCIAL_PROFILE = { invalid json };
+            </script>
+          </head>
+        </html>
+      `;
+
+      const profile = extractSocialProfileFromHtml(html);
+
+      expect(profile).toBeNull();
+    });
+
+    it('should return null when fullName is missing', () => {
+      const html = `
+        <html>
+          <head>
+            <script>
+              window.VIEWER_SOCIAL_PROFILE = {
+                "profileImageUrlSmall": "https://s3.amazonaws.com/avatar-small.jpg"
+              };
+            </script>
+          </head>
+        </html>
+      `;
+
+      const profile = extractSocialProfileFromHtml(html);
+
+      expect(profile).toBeNull();
+    });
+
+    it('should fallback to profileImageUrlMedium when small is missing', () => {
+      const html = `
+        <html>
+          <head>
+            <script>
+              window.VIEWER_SOCIAL_PROFILE = {
+                "fullName": "Jane Smith",
+                "profileImageUrlMedium": "https://s3.amazonaws.com/avatar-medium.jpg"
+              };
+            </script>
+          </head>
+        </html>
+      `;
+
+      const profile = extractSocialProfileFromHtml(html);
+
+      expect(profile).toEqual({
+        displayName: 'Jane Smith',
+        profileImageUrl: 'https://s3.amazonaws.com/avatar-medium.jpg',
+      });
+    });
+
+    it('should handle missing profile images gracefully', () => {
+      const html = `
+        <html>
+          <head>
+            <script>
+              window.VIEWER_SOCIAL_PROFILE = {
+                "fullName": "Bob Wilson"
+              };
+            </script>
+          </head>
+        </html>
+      `;
+
+      const profile = extractSocialProfileFromHtml(html);
+
+      expect(profile).toEqual({
+        displayName: 'Bob Wilson',
+        profileImageUrl: undefined,
+      });
+    });
+
+    it('should handle empty HTML', () => {
+      const profile = extractSocialProfileFromHtml('');
+
+      expect(profile).toBeNull();
+    });
+
+    it('should handle different whitespace and formatting', () => {
+      const html = `
+        <script>
+          window.VIEWER_SOCIAL_PROFILE   =   {
+            "fullName":"Alice Johnson","profileImageUrlSmall":"https://s3.amazonaws.com/alice.jpg"
+          }  ;
+        </script>
+      `;
+
+      const profile = extractSocialProfileFromHtml(html);
+
+      expect(profile).toEqual({
+        displayName: 'Alice Johnson',
+        profileImageUrl: 'https://s3.amazonaws.com/alice.jpg',
+      });
     });
   });
 });

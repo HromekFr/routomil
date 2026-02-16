@@ -46,7 +46,7 @@
 ## How It Works
 
 1. User plans a route on Mapy.cz
-2. Extension extracts GPX data from the page
+2. Extension extracts route parameters from the URL and fetches GPX via Mapy.cz API
 3. GPX is converted to Garmin Course JSON format (distances, elevation, bounding box)
 4. CSRF token is extracted from Garmin Connect
 5. Course is uploaded via Garmin's Course API
@@ -67,6 +67,10 @@ npm test
 # Run all tests
 npm run test:all
 
+# Manual integration tests
+npm run test:api   # Test Garmin Course API (requires cookies.txt)
+npm run test:mapy  # Test Mapy.cz Export API
+
 # Clean dist folder
 npm run clean
 ```
@@ -83,7 +87,6 @@ routomil/
 │   │   └── garmin-api.ts     # Garmin Course API client
 │   ├── content/              # Content scripts for mapy.cz
 │   │   ├── mapy-content.ts   # Content script entry point
-│   │   ├── button-injector.ts
 │   │   └── route-extractor.ts
 │   ├── popup/                # Extension popup UI
 │   │   ├── popup.html
@@ -91,11 +94,17 @@ routomil/
 │   │   └── popup.css
 │   ├── lib/                  # Shared libraries
 │   │   ├── gpx-parser.ts     # GPX parsing + Course JSON conversion
+│   │   ├── mapy-api.ts       # Mapy.cz Export API client
+│   │   ├── mapy-url-parser.ts # Parse Mapy.cz route URLs
 │   │   └── storage.ts        # Encrypted token storage
 │   └── shared/               # Shared types
 │       ├── messages.ts       # IPC types + Garmin Course types
 │       └── errors.ts         # Error classes and codes
 ├── tests/                    # Test suites
+│   ├── integration/          # Manual integration tests
+│   │   ├── test-course-api.js   # Garmin API reference impl
+│   │   └── test-mapy-export-api.js # Mapy API reference impl
+│   └── *.test.ts             # Jest unit tests
 ├── assets/
 │   └── icons/                # Extension icons
 └── scripts/
@@ -106,7 +115,6 @@ routomil/
 
 - `storage` - Encrypted session token storage
 - `cookies` - Session cookie capture from Garmin Connect
-- `downloads` - Monitor GPX file downloads from Mapy.cz
 - Host permissions for `mapy.cz`, `en.mapy.cz`, `mapy.com`, `sso.garmin.com`, and `connect.garmin.com`
 
 ## Security

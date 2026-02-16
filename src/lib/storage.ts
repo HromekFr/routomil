@@ -13,6 +13,8 @@ interface AuthToken {
   sessionCookies: string;
   username: string;
   expiresAt: number;
+  displayName?: string;
+  profileImageUrl?: string;
 }
 
 // Generate or retrieve encryption key
