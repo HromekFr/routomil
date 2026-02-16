@@ -67,22 +67,32 @@ function showLoginView(): void {
 }
 
 function showMainView(auth: AuthStatus): void {
+  console.log('[Popup] showMainView called with auth:', {
+    username: auth.username,
+    displayName: auth.displayName,
+    hasProfileImageUrl: !!auth.profileImageUrl,
+    profileImageUrl: auth.profileImageUrl
+  });
+
   loginView.classList.add('hidden');
   mainView.classList.remove('hidden');
   userName.textContent = auth.displayName || auth.username || 'Connected';
 
   // Handle avatar display
   if (auth.profileImageUrl) {
+    console.log('[Popup] Setting avatar image:', auth.profileImageUrl);
     userAvatarImg.src = auth.profileImageUrl;
     userAvatarImg.classList.remove('hidden');
     userAvatarFallback.classList.add('hidden');
 
     // Fallback to SVG if image fails to load
     userAvatarImg.onerror = () => {
+      console.log('[Popup] Avatar image failed to load, showing fallback');
       userAvatarImg.classList.add('hidden');
       userAvatarFallback.classList.remove('hidden');
     };
   } else {
+    console.log('[Popup] No profile image URL, showing SVG fallback');
     userAvatarImg.classList.add('hidden');
     userAvatarFallback.classList.remove('hidden');
   }
