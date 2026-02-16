@@ -1,5 +1,29 @@
 # Routomil Changelog
 
+## 2026-02-16 - Refactor: Moved Integration Test Scripts
+
+### Organization: Improved Project Structure
+- Moved test-course-api.js to tests/integration/
+- Moved test-mapy-export-api.js to tests/integration/
+- Created tests/integration/README.md documenting both scripts
+- Updated package.json script paths (test:api, test:mapy)
+- Updated CLAUDE.md to reference new locations and added test:mapy command
+- Updated README.md: removed obsolete downloads permission, updated project structure, added integration test commands
+
+**Impact:** Cleaner root directory, better organization of manual integration tests vs automated Jest tests. Documentation now accurate.
+
+**Files Modified:**
+- package.json - Updated script paths
+- CLAUDE.md - Updated resource references, added test:mapy command
+- README.md - Removed downloads permission, updated "How It Works", updated project structure, added integration test commands
+
+**Files Moved:**
+- test-course-api.js → tests/integration/test-course-api.js
+- test-mapy-export-api.js → tests/integration/test-mapy-export-api.js
+
+**Files Created:**
+- tests/integration/README.md - Documentation for integration test scripts
+
 ## 2026-02-16 - Direct API Integration: Replaced DOM-based GPX Extraction
 
 ### Feature: URL-based Route Extraction via Mapy.cz Export API

@@ -29,6 +29,7 @@ npm run test             # Unit tests (Jest)
 npm run test:integration # Integration tests
 npm run test:all         # Full build + all tests
 npm run test:api         # Course API test (needs cookies.txt + export.gpx)
+npm run test:mapy        # Mapy.cz export API test
 npm run package          # Package for Chrome Web Store
 npm run clean            # Remove dist/
 ```
@@ -85,7 +86,8 @@ Use minimal TDD approach for major implementation changes:
 
 ## Resources
 
-- `test-course-api.js` - Reference implementation and standalone API test (includes cookie setup instructions)
+- `tests/integration/test-course-api.js` - Reference implementation and standalone API test (includes cookie setup instructions)
+- `tests/integration/test-mapy-export-api.js` - Mapy.cz export API reference implementation and validation
 - [Chrome Extension API](https://developer.chrome.com/docs/extensions/reference/)
 - [Garmin Connect](https://connect.garmin.com)
 - [Mapy.cz](https://mapy.cz)
