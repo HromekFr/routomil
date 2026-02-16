@@ -60,7 +60,7 @@ npm run security:clean   # Remove database and results
 ## Conventions
 
 ### Changelog
-Update `changelog.log` after every meaningful change (features, fixes, refactors, deps, config). Format: date, description, files affected, impact. Skip for typos and formatting-only changes.
+Update `CHANGELOG.md` after every meaningful change (features, fixes, refactors, deps, config). Format: date, description, files affected, impact. Skip for typos and formatting-only changes.
 
 ### Security
 Never log or expose: credentials, session tokens, CSRF tokens, user GPX data, Garmin API responses with user data. Always use encrypted storage, HTTPS, and clear sensitive data on logout.
@@ -82,17 +82,17 @@ Use minimal TDD approach for major implementation changes:
 
 ## Before Starting Work
 
-1. Check `changelog.log` for recent context
+1. Check `CHANGELOG.md` for recent context
 2. Read relevant source files before modifying
 3. Understand the message flow for the feature area
-4. After changes: `npm run build` to verify, update `changelog.log`
+4. After changes: `npm run build` to verify, update `CHANGELOG.md`
 
 ## Release Checklist
 
 1. All tests pass: `npm run test:all`
 2. Security scan clean: `npm run security` (fix all errors, review warnings)
 3. Build succeeds: `npm run build`
-4. `changelog.log` updated
+4. `CHANGELOG.md` updated
 5. Version synced: `npm version patch` (auto-syncs manifest.json)
 6. Package: `npm run package`
 

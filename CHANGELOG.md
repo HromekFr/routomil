@@ -1,3 +1,352 @@
+# Routomil Changelog
+
+## 2026-02-16 - Documentation: Consolidated Duplicate Changelog Files
+
+### Cleanup: Merged changelog.log into CHANGELOG.md
+- Discovered duplicate changelog files (CHANGELOG.md and changelog.log)
+- CHANGELOG.md was created during open-source prep by renaming original changelog.log
+- A new changelog.log was later created and accumulated newer entries
+- Merged all entries from changelog.log into CHANGELOG.md (newer entries first)
+- Deleted duplicate changelog.log file
+- Updated CLAUDE.md to reference CHANGELOG.md instead of changelog.log (3 locations)
+
+**Files Modified:**
+- CHANGELOG.md - Merged content from changelog.log
+- CLAUDE.md - Updated all references from changelog.log to CHANGELOG.md
+
+**Files Deleted:**
+- changelog.log - Consolidated into CHANGELOG.md
+
+**Impact:** Single source of truth for changelog, no more confusion about which file to update.
+
+---
+
+## 2026-02-16 - Feature: CodeQL CLI Security Analysis
+
+### Security: Local Vulnerability Scanning with CodeQL CLI
+- [x] Automated setup via Homebrew with manual download fallback
+- [x] Database creation from TypeScript/JavaScript source (11MB, 14 files)
+- [x] Fast iteration with quick scan mode (~30 sec vs 5 min full scan)
+- [x] SARIF and CSV output formats for results
+- [x] 5 custom security queries detecting token exposure, XSS, weak encryption, CSRF issues, sensitive data leaks
+- [x] Initial scan detected 10 DOM XSS vulnerabilities in button-injector.ts and popup.ts
+
+### npm Scripts Added
+- `npm run security` - Full scan (database + all queries)
+- `npm run security:db` - Create CodeQL database
+- `npm run security:analyze` - Run all queries
+- `npm run security:quick` - Quick scan (custom queries only, ~30 sec)
+- `npm run security:view` - View formatted results
+- `npm run security:verify` - Verify setup
+- `npm run security:clean` - Clean up artifacts
+
+### Custom Security Queries
+1. **TokenLogging.ql** (Error, 8.0) - Detects console.log of tokens, cookies, credentials
+2. **DomXss.ql** (Error, 9.0) - Detects innerHTML/outerHTML assignments (found 10 issues)
+3. **WeakEncryption.ql** (Warning, 7.0) - Detects key storage, weak IVs, short keys
+4. **CsrfTokenMishandling.ql** (Error, 7.5) - Detects CSRF tokens in logs/storage
+5. **SensitiveDataInErrors.ql** (Warning, 6.5) - Detects tokens in error messages
+
+### Files Created
+- codeql-config.yml - Database configuration
+- codeql-custom-queries/qlpack.yml - Query pack manifest
+- codeql-custom-queries/lib/SecurityConcepts.qll - Shared security predicates
+- codeql-custom-queries/queries/*.ql - 5 custom security queries
+- scripts/setup-codeql.sh - Install CodeQL CLI
+- scripts/create-codeql-db.sh - Database creation automation
+- scripts/run-codeql-analysis.sh - Analysis execution (--quick flag support)
+- scripts/view-codeql-results.sh - Formatted results viewer
+- scripts/verify-codeql-setup.sh - Setup validation
+- docs/SECURITY_ANALYSIS.md - Complete 508-line guide
+
+### Files Modified
+- .gitignore - Exclude CodeQL artifacts (/tools/codeql/, /codeql-db/, *.sarif)
+- package.json - Add 7 security npm scripts
+- CLAUDE.md - Update Commands, Security, Release Checklist, Resources sections
+
+### Impact
+- **Developer workflow:** Run `npm run security` before releases to detect vulnerabilities
+- **Security posture:** Automated detection of token exposure, XSS, weak encryption, CSRF issues
+- **Quality:** Required security scan in Release Checklist (step 2)
+- **Iteration speed:** Quick mode enables fast security checks during development
+- **Private repo solution:** Local CodeQL scanning without GitHub Actions dependency
+
+### Technical Details
+- CodeQL version: 2.24.1 (installed via Homebrew)
+- Database size: ~11MB per scan
+- Analysis time: 30 sec (quick) / 2-5 min (full)
+- Results format: SARIF (machine-readable), CSV (human-readable)
+- Query language: CodeQL for JavaScript
+- 18 files created, 1567 lines added
+
+---
+
+## 2026-02-16 - Feature: Display Real Garmin User Profile in Popup
+
+### User Experience: Real Name and Avatar Instead of Placeholder
+- [x] Extract user profile data from window.VIEWER_SOCIAL_PROFILE in Garmin Connect HTML
+- [x] Display real user name and profile photo in popup UI
+- [x] Graceful fallback to SVG icon if avatar image fails to load or doesn't exist
+- [x] Zero extra network requests (piggybacks on existing getCsrfToken() fetch)
+- [x] Pre-fetch profile data after login for immediate display
+
+### Implementation Details
+- Added extractSocialProfileFromHtml() function to parse VIEWER_SOCIAL_PROFILE JSON block
+- Extended AuthToken and AuthStatus interfaces with displayName and profileImageUrl
+- Updated getCsrfToken() to extract and save profile data alongside CSRF token
+- Updated checkAuth() to include profile data in authentication status
+- Modified login() to pre-fetch profile data via fire-and-forget getCsrfToken() call
+- Updated popup HTML with <img> element and SVG fallback
+- Updated popup.ts showMainView() to handle avatar display with onerror fallback
+- Added CSS styles for avatar-img with circular cropping
+
+### Files Modified
+- src/lib/storage.ts - Already had displayName and profileImageUrl in AuthToken (no change needed)
+- src/shared/messages.ts - Added displayName and profileImageUrl to AuthStatus interface
+- src/background/garmin-auth.ts - Added extractSocialProfileFromHtml(), updated getCsrfToken(), checkAuth(), login()
+- src/popup/popup.html - Added user-avatar-img element with fallback SVG
+- src/popup/popup.ts - Added DOM refs, updated showMainView() with avatar display logic
+- src/popup/popup.css - Added avatar-img styles with circular border-radius
+- tests/garmin-auth.test.ts - Added 8 tests for extractSocialProfileFromHtml()
+
+### Impact
+Users now see their real Garmin name and profile photo instead of generic "Garmin User" placeholder. Popup feels more personalized and confirms correct account connection. No performance impact - profile data extracted from HTML already being fetched for CSRF token.
+
+## 2026-02-16 - Refactor: Moved Integration Test Scripts
+
+### Organization: Improved Project Structure
+- Moved test-course-api.js to tests/integration/
+- Moved test-mapy-export-api.js to tests/integration/
+- Created tests/integration/README.md documenting both scripts
+- Updated package.json script paths (test:api, test:mapy)
+- Updated CLAUDE.md to reference new locations and added test:mapy command
+- Updated README.md: removed obsolete downloads permission, updated project structure, added integration test commands
+
+**Impact:** Cleaner root directory, better organization of manual integration tests vs automated Jest tests. Documentation now accurate.
+
+**Files Modified:**
+- package.json - Updated script paths
+- CLAUDE.md - Updated resource references, added test:mapy command
+- README.md - Removed downloads permission, updated "How It Works", updated project structure, added integration test commands
+
+**Files Moved:**
+- test-course-api.js → tests/integration/test-course-api.js
+- test-mapy-export-api.js → tests/integration/test-mapy-export-api.js
+
+**Files Created:**
+- tests/integration/README.md - Documentation for integration test scripts
+
+## 2026-02-16 - Direct API Integration: Replaced DOM-based GPX Extraction
+
+### Feature: URL-based Route Extraction via Mapy.cz Export API
+- [x] Replaced 515 lines of DOM button-clicking with direct API calls
+- [x] Created URL parser for Mapy.cz route parameters (rc, rs, ri, mrp, rwp)
+- [x] Integrated Mapy.cz tplannerexport API client
+- [x] Migrated gpx-parser.ts to use xmldom (service worker compatible)
+- [x] Removed downloads permission from manifest
+- [x] Simplified message flow: content script sends URL params → service worker fetches GPX
+
+### Files Created
+- src/lib/mapy-url-parser.ts - Parse Mapy.cz URLs, extract route params, build API URLs
+- src/lib/mapy-api.ts - Fetch GPX directly from Mapy.cz API
+- tests/mapy-url-parser.test.ts - URL parser tests with real test data
+
+### Files Modified
+- src/lib/gpx-parser.ts - Switched from browser DOMParser to xmldom for service worker compatibility
+- src/shared/messages.ts - Added SYNC_ROUTE_FROM_URL message, removed SYNC_ROUTE and RouteData
+- src/background/service-worker.ts - New handleSyncRouteFromUrl(), removed download listener
+- src/content/mapy-content.ts - Parse URL params instead of DOM extraction
+- src/content/route-extractor.ts - Gutted to 56 lines, kept only extractRouteName()
+- manifest.json - Removed "downloads" permission
+
+### Impact
+- **Reliability:** No more DOM fragility - deterministic API calls
+- **Simplicity:** ~460 lines of DOM manipulation removed
+- **Performance:** Direct fetch instead of simulating button clicks and intercepting downloads
+- **Service worker:** GPX parsing now works in background (xmldom instead of browser DOMParser)
+- **No downloads:** Route data never triggers browser download, cleaner UX
+
+### Technical Details
+- URL parsing: rc split into 10-char chunks → rg[], rs[], ri[], rp_c, rp_aw
+- API endpoint: https://mapy.com/api/tplannerexport
+- No authentication required (public API)
+- xmldom replaces browser DOMParser for service worker compatibility
+- querySelector/querySelectorAll → getElementsByTagName conversion
+- Message flow: EXTRACT_AND_SYNC → parseMapyUrl() → SYNC_ROUTE_FROM_URL → fetchGpxFromMapy()
+
+### Breaking Changes
+- None (transparent internal change, same user-facing workflow)
+
+---
+
+## 2026-02-16 - Testing Conventions Update
+
+### Documentation: Added Minimal TDD Guidelines to CLAUDE.md
+- [x] Added Testing section to Conventions in CLAUDE.md
+- [x] Specified minimal TDD approach for major implementation changes
+- [x] Guidelines: Write failing test → implement → refactor
+- [x] Minor changes and bug fixes can have tests after implementation
+- [x] Files modified: CLAUDE.md
+
+### Impact
+- **Developer workflow:** Clear testing strategy for major vs minor changes
+- No code changes
+
+---
+
+## 2026-02-16 - Mapy.cz Export API Test Script
+
+### Feature: Direct API Call Test for Route Export
+- [x] Created test-mapy-export-api.js - standalone test script for Mapy.cz export API
+- [x] Discovered endpoint: https://mapy.com/api/tplannerexport
+- [x] **SOLVED: rc → rg coordinate encoding** - Split rc into 10-character chunks
+- [x] **SOLVED: rwp → rp_aw parameter mapping** - URL parameter rwp becomes API parameter rp_aw
+- [x] Test scenarios:
+  - Direct API call with known parameters (export=gpx, rg, rs, ri, rp_c, rp_aw)
+  - Auth requirement test (confirms public API, no cookies needed)
+  - Minimal parameter exploration (all params required)
+  - URL parameter extraction with rc→rg splitting (parseMapyUrl, splitRcToRg functions)
+  - GPX validation (xmldom parsing, statistics calculation)
+- [x] Files created:
+  - test-mapy-export-api.js
+- [x] Files modified:
+  - package.json (added `test:mapy` script)
+
+### Impact
+- **Research:** Validates that Mapy.cz export API can be called directly without clicking Export button
+- **Developer workflow:** Run `npm run test:mapy` to test API endpoint
+- **Next steps:** Can integrate direct API call into extension to replace DOM button-clicking approach
+- **Encoding solved:** rc parameter splits into 10-char chunks to create rg values (e.g., rc=9hChxxXvtO95rPhx1qo5 → rg=9hChxxXvtO, rg=95rPhx1qo5)
+
+### Technical Details
+- No authentication required (public API)
+- Returns valid GPX XML with track points
+- **Required params:** export=gpx, rg (split from rc), rs, ri, rp_c
+- **Optional params:** lang, rp_aw (mapped from rwp)
+- URL parameter extraction from Mapy.cz planning URLs with rc→rg splitting
+- Haversine distance calculation for GPX statistics
+- Uses xmldom parser (already a dependency)
+- Tested with 2-waypoint (Prague-Liberec, 128km) and 5-waypoint routes
+
+---
+
+## 2026-02-16 - CLAUDE.md Rewrite
+
+### Refactor: Condensed CLAUDE.md from 623 to 84 lines
+- [x] Removed completed migration checklists (Phases 1-8) — historical context
+- [x] Removed API payload examples — already in garmin-api.ts and messages.ts
+- [x] Removed debugging guides and cookie instructions — task-specific
+- [x] Removed duplicate file references and code snippets
+- [x] Added architecture diagram, code organization table, release checklist
+- [x] Files modified: CLAUDE.md
+
+### Impact
+- **Developer workflow:** CLAUDE.md is now a concise reference (~85 lines) with only universally applicable info
+- No code changes
+
+## 2026-02-16 - CI/CD Infrastructure
+
+### Feature: GitHub Actions Workflows & Release Automation
+- [x] Added version sync script to keep package.json and manifest.json in sync
+- [x] Added extension packaging script to create distributable ZIP files
+- [x] Created CI workflow for automated testing on push/PR
+- [x] Created Release workflow for automated GitHub Releases on version tags
+- [x] Files created:
+  - scripts/sync-version.js
+  - scripts/package-extension.js
+  - .github/workflows/ci.yml
+  - .github/workflows/release.yml
+- [x] Files modified:
+  - package.json (added `version` and `package` scripts)
+  - .gitignore (excluded routomil-v*.zip)
+
+### Impact
+- **Developer workflow:** Simplified release process with `npm version patch/minor/major`
+- **Automation:** CI runs on every push/PR (type check, tests, build, integration tests)
+- **Distribution:** Automatic GitHub Releases with ZIP attachments on version tags
+- **Quality:** No manual version syncing between package.json and manifest.json
+- **Build artifacts:** ZIP files exclude source maps (19.41 KB vs 43.2 KB dist/)
+
+### Technical Details
+- CI workflow runs on ubuntu-latest with Node 18
+- Uses npm ci --ignore-scripts (icons already committed)
+- Release workflow supports pre-releases (tags with `-` like v1.1.0-beta.1)
+- Uses softprops/action-gh-release@v2 with auto-generated release notes
+- Coverage reports uploaded to codecov (optional, doesn't fail CI)
+
+---
+
+## 2026-02-16 - Course API Migration Complete
+
+### Feature: Migrated from FIT File Upload to Garmin Course API
+- [x] Implemented GPX to JSON conversion (src/lib/gpx-parser.ts)
+- [x] Added CSRF token extraction (src/background/garmin-auth.ts)
+- [x] Replaced upload logic with Course API (src/background/garmin-api.ts)
+- [x] Updated service worker integration (src/background/service-worker.ts)
+- [x] Added Garmin Course API types (src/shared/messages.ts)
+- [x] Removed FIT dependencies (@garmin/fitsdk, fit-encoder.ts)
+- [x] End-to-end testing verified and working
+
+### Impact
+- **Simpler:** JSON API instead of binary FIT encoding
+- **Smaller:** Removed 370 KB @garmin/fitsdk dependency
+- **Correct:** Creates courses (not activities) in Garmin Connect
+- **Better:** Supports course names, descriptions, waypoints
+- **Working:** Full sync flow tested with real Garmin account
+
+### Breaking Changes
+- None (transparent backend change, same user-facing features)
+
+### Technical Details
+- Course API endpoint: POST https://connect.garmin.com/gc-api/course-service/course
+- Authentication: Session cookies + CSRF token from <meta> tag
+- CSRF extraction: 6 regex patterns for robust token detection
+- Activity types: 10=cycling, 17=hiking
+- JSON payload includes: geoPoints, courseLines, boundingBox, elevation data
+- Bundle size: 72.4 KB (down from previous FIT-based implementation)
+
+### Files Modified
+- src/lib/gpx-parser.ts - Added convertGpxToGarminCourse()
+- src/background/garmin-auth.ts - Added getCsrfToken()
+- src/background/garmin-api.ts - Replaced FIT upload with Course API
+- src/background/service-worker.ts - Updated sync flow
+- src/shared/messages.ts - Added Garmin Course types
+- package.json - Removed @garmin/fitsdk
+
+### Files Deleted
+- src/lib/fit-encoder.ts - No longer needed
+- test-upload.js, diagnose-upload.js, test-with-cookies-file.js - Obsolete
+
+### Known Issues
+- None identified
+
+---
+
+## Initial Release - v1.0.0
+
+### Feature: Chrome Extension for Mapy.cz to Garmin Connect Sync
+- [x] Chrome Extension Manifest V3 structure
+- [x] TypeScript + Webpack build system
+- [x] Browser-tab authentication (supports MFA/2FA)
+- [x] GPX extraction from Mapy.cz routes
+- [x] Automatic sync to Garmin Connect
+- [x] Sync history tracking
+- [x] Popup UI for login and route sync
+- [x] Encrypted token storage
+
+### Technical Stack
+- TypeScript 5.4.5
+- Webpack 5.91.0
+- Jest for testing
+- Chrome Extension API (Manifest V3)
+- xmldom for GPX parsing
+
+### Files Structure
+- src/background/ - Service worker and API clients
+- src/content/ - Content scripts for Mapy.cz
+- src/popup/ - Extension popup UI
+- src/lib/ - Shared libraries (GPX parser, storage)
+- src/shared/ - Types and error definitions
 # Changelog - Routomil
 
 ## 2026-02-16 - Open-Source Preparation
