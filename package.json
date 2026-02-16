@@ -39,6 +39,13 @@
     "test:all": "npm run build:skip-tests && npm run test && npm run test:integration",
     "test:api": "node tests/integration/test-course-api.js cookies.txt export.gpx",
     "test:mapy": "node tests/integration/test-mapy-export-api.js",
+    "security": "npm run security:db && npm run security:analyze",
+    "security:db": "bash scripts/create-codeql-db.sh",
+    "security:analyze": "bash scripts/run-codeql-analysis.sh",
+    "security:quick": "bash scripts/run-codeql-analysis.sh --quick",
+    "security:view": "bash scripts/view-codeql-results.sh",
+    "security:verify": "bash scripts/verify-codeql-setup.sh",
+    "security:clean": "rm -rf codeql-db codeql-results",
     "version": "node scripts/sync-version.js && git add manifest.json",
     "package": "node scripts/package-extension.js"
   },

@@ -32,6 +32,15 @@ npm run test:api         # Course API test (needs cookies.txt + export.gpx)
 npm run test:mapy        # Mapy.cz export API test
 npm run package          # Package for Chrome Web Store
 npm run clean            # Remove dist/
+
+# Security Analysis (CodeQL CLI)
+npm run security         # Full security scan (database + all queries)
+npm run security:db      # Create CodeQL database from source
+npm run security:analyze # Run all security queries
+npm run security:quick   # Quick scan (custom queries only, ~30 sec)
+npm run security:view    # View formatted analysis results
+npm run security:verify  # Verify CodeQL setup
+npm run security:clean   # Remove database and results
 ```
 
 ## Code Organization
@@ -56,6 +65,8 @@ Update `changelog.log` after every meaningful change (features, fixes, refactors
 ### Security
 Never log or expose: credentials, session tokens, CSRF tokens, user GPX data, Garmin API responses with user data. Always use encrypted storage, HTTPS, and clear sensitive data on logout.
 
+**Security Analysis:** Run `npm run security` before releases to detect vulnerabilities using CodeQL CLI. Custom queries check for token exposure, XSS, encryption issues, CSRF token mishandling, and sensitive data leakage. See `docs/SECURITY_ANALYSIS.md` for complete guide.
+
 ### Error Handling
 Use `MapyGarminError` from `src/shared/errors.ts` with appropriate error codes. Errors propagate from background to popup via message responses.
 
@@ -79,15 +90,17 @@ Use minimal TDD approach for major implementation changes:
 ## Release Checklist
 
 1. All tests pass: `npm run test:all`
-2. Build succeeds: `npm run build`
-3. `changelog.log` updated
-4. Version synced: `npm version patch` (auto-syncs manifest.json)
-5. Package: `npm run package`
+2. Security scan clean: `npm run security` (fix all errors, review warnings)
+3. Build succeeds: `npm run build`
+4. `changelog.log` updated
+5. Version synced: `npm version patch` (auto-syncs manifest.json)
+6. Package: `npm run package`
 
 ## Resources
 
 - `tests/integration/test-course-api.js` - Reference implementation and standalone API test (includes cookie setup instructions)
 - `tests/integration/test-mapy-export-api.js` - Mapy.cz export API reference implementation and validation
+- `docs/SECURITY_ANALYSIS.md` - Complete guide for CodeQL security analysis
 - [Chrome Extension API](https://developer.chrome.com/docs/extensions/reference/)
 - [Garmin Connect](https://connect.garmin.com)
 - [Mapy.cz](https://mapy.cz)

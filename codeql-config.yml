@@ -1,0 +1,17 @@
+# CodeQL Database Creation Configuration
+# Specifies source directories and exclusions for security analysis
+
+paths:
+  - src/
+
+paths-ignore:
+  - node_modules
+  - dist
+  - coverage
+  - tests
+  - "**/*.test.ts"
+  - "**/*.spec.ts"
+
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
