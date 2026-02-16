@@ -177,6 +177,9 @@ export async function login(): Promise<GarminSession> {
                 const session = await captureSession();
                 console.log('[Garmin Auth] Session captured');
 
+                // Pre-fetch profile data (non-blocking)
+                getCsrfToken().catch(() => {});
+
                 // Close login tab
                 chrome.tabs.remove(tabId);
                 console.log('[Garmin Auth] Login tab closed');
@@ -229,6 +232,8 @@ export async function checkAuth(): Promise<{
   isAuthenticated: boolean;
   username?: string;
   expiresAt?: number;
+  displayName?: string;
+  profileImageUrl?: string;
 }> {
   console.log('[Garmin Auth] Checking authentication');
 
@@ -236,10 +241,14 @@ export async function checkAuth(): Promise<{
   const session = await checkExistingSession();
 
   if (session) {
+    // Get stored token for profile data
+    const token = await getAuthToken();
     return {
       isAuthenticated: true,
-      username: session.username,
+      username: token?.displayName || session.username,
       expiresAt: session.expiresAt,
+      displayName: token?.displayName,
+      profileImageUrl: token?.profileImageUrl,
     };
   }
 
@@ -252,8 +261,10 @@ export async function checkAuth(): Promise<{
 
   return {
     isAuthenticated: true,
-    username: token.username,
+    username: token.displayName || token.username,
     expiresAt: token.expiresAt,
+    displayName: token.displayName,
+    profileImageUrl: token.profileImageUrl,
   };
 }
 
@@ -273,6 +284,42 @@ export async function getSessionCookies(): Promise<string | null> {
 // ============================================================================
 // CSRF Token Extraction (Phase 2: Course API Migration)
 // ============================================================================
+
+/**
+ * Extract social profile data from HTML page
+ * Looks for: window.VIEWER_SOCIAL_PROFILE = { ... }
+ * Returns null on any failure - never throws
+ */
+export function extractSocialProfileFromHtml(html: string): { displayName: string; profileImageUrl?: string } | null {
+  try {
+    // Match window.VIEWER_SOCIAL_PROFILE = { ... }; (allows optional whitespace before semicolon)
+    const pattern = /window\.VIEWER_SOCIAL_PROFILE\s*=\s*(\{[\s\S]*?\})\s*;/;
+    const match = html.match(pattern);
+
+    if (!match || !match[1]) {
+      return null;
+    }
+
+    // Parse JSON
+    const profile = JSON.parse(match[1]);
+
+    // Extract fullName
+    if (!profile.fullName) {
+      return null;
+    }
+
+    // Extract profile image URL (prefer small, fallback to medium)
+    const profileImageUrl = profile.profileImageUrlSmall || profile.profileImageUrlMedium;
+
+    return {
+      displayName: profile.fullName,
+      profileImageUrl,
+    };
+  } catch (error) {
+    // Never throw - return null on any error
+    return null;
+  }
+}
 
 /**
  * Extract CSRF token from HTML page
@@ -357,6 +404,20 @@ export async function getCsrfToken(): Promise<string> {
     const html = await response.text();
     console.log('[Garmin Auth] Received HTML length:', html.length);
     console.log('[Garmin Auth] HTML preview:', html.substring(0, 500));
+
+    // Extract social profile data
+    const socialProfile = extractSocialProfileFromHtml(html);
+    if (socialProfile) {
+      console.log('[Garmin Auth] Social profile extracted:', socialProfile.displayName);
+      const token = await getAuthToken();
+      if (token) {
+        token.displayName = socialProfile.displayName;
+        token.profileImageUrl = socialProfile.profileImageUrl;
+        token.username = socialProfile.displayName;
+        await saveAuthToken(token);
+        console.log('[Garmin Auth] Profile data saved to token');
+      }
+    }
 
     // Extract token from HTML
     const token = extractCsrfTokenFromHtml(html);

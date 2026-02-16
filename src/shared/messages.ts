@@ -34,6 +34,8 @@ export interface AuthStatus {
   isAuthenticated: boolean;
   username?: string;
   expiresAt?: number;
+  displayName?: string;
+  profileImageUrl?: string;
 }
 
 export interface ExtensionSettings {

@@ -148,6 +148,19 @@ body {
   align-items: center;
   justify-content: center;
   color: white;
+  position: relative;
+}
+
+.avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-img.hidden,
+#user-avatar-fallback.hidden {
+  display: none;
 }
 
 .user-details {
