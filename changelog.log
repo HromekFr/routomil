@@ -1,0 +1,105 @@
+# Routomil Changelog
+
+## 2026-02-16 - CI/CD Infrastructure
+
+### Feature: GitHub Actions Workflows & Release Automation
+- [x] Added version sync script to keep package.json and manifest.json in sync
+- [x] Added extension packaging script to create distributable ZIP files
+- [x] Created CI workflow for automated testing on push/PR
+- [x] Created Release workflow for automated GitHub Releases on version tags
+- [x] Files created:
+  - scripts/sync-version.js
+  - scripts/package-extension.js
+  - .github/workflows/ci.yml
+  - .github/workflows/release.yml
+- [x] Files modified:
+  - package.json (added `version` and `package` scripts)
+  - .gitignore (excluded routomil-v*.zip)
+
+### Impact
+- **Developer workflow:** Simplified release process with `npm version patch/minor/major`
+- **Automation:** CI runs on every push/PR (type check, tests, build, integration tests)
+- **Distribution:** Automatic GitHub Releases with ZIP attachments on version tags
+- **Quality:** No manual version syncing between package.json and manifest.json
+- **Build artifacts:** ZIP files exclude source maps (19.41 KB vs 43.2 KB dist/)
+
+### Technical Details
+- CI workflow runs on ubuntu-latest with Node 18
+- Uses npm ci --ignore-scripts (icons already committed)
+- Release workflow supports pre-releases (tags with `-` like v1.1.0-beta.1)
+- Uses softprops/action-gh-release@v2 with auto-generated release notes
+- Coverage reports uploaded to codecov (optional, doesn't fail CI)
+
+---
+
+## 2026-02-16 - Course API Migration Complete
+
+### Feature: Migrated from FIT File Upload to Garmin Course API
+- [x] Implemented GPX to JSON conversion (src/lib/gpx-parser.ts)
+- [x] Added CSRF token extraction (src/background/garmin-auth.ts)
+- [x] Replaced upload logic with Course API (src/background/garmin-api.ts)
+- [x] Updated service worker integration (src/background/service-worker.ts)
+- [x] Added Garmin Course API types (src/shared/messages.ts)
+- [x] Removed FIT dependencies (@garmin/fitsdk, fit-encoder.ts)
+- [x] End-to-end testing verified and working
+
+### Impact
+- **Simpler:** JSON API instead of binary FIT encoding
+- **Smaller:** Removed 370 KB @garmin/fitsdk dependency
+- **Correct:** Creates courses (not activities) in Garmin Connect
+- **Better:** Supports course names, descriptions, waypoints
+- **Working:** Full sync flow tested with real Garmin account
+
+### Breaking Changes
+- None (transparent backend change, same user-facing features)
+
+### Technical Details
+- Course API endpoint: POST https://connect.garmin.com/gc-api/course-service/course
+- Authentication: Session cookies + CSRF token from <meta> tag
+- CSRF extraction: 6 regex patterns for robust token detection
+- Activity types: 10=cycling, 17=hiking
+- JSON payload includes: geoPoints, courseLines, boundingBox, elevation data
+- Bundle size: 72.4 KB (down from previous FIT-based implementation)
+
+### Files Modified
+- src/lib/gpx-parser.ts - Added convertGpxToGarminCourse()
+- src/background/garmin-auth.ts - Added getCsrfToken()
+- src/background/garmin-api.ts - Replaced FIT upload with Course API
+- src/background/service-worker.ts - Updated sync flow
+- src/shared/messages.ts - Added Garmin Course types
+- package.json - Removed @garmin/fitsdk
+
+### Files Deleted
+- src/lib/fit-encoder.ts - No longer needed
+- test-upload.js, diagnose-upload.js, test-with-cookies-file.js - Obsolete
+
+### Known Issues
+- None identified
+
+---
+
+## Initial Release - v1.0.0
+
+### Feature: Chrome Extension for Mapy.cz to Garmin Connect Sync
+- [x] Chrome Extension Manifest V3 structure
+- [x] TypeScript + Webpack build system
+- [x] Browser-tab authentication (supports MFA/2FA)
+- [x] GPX extraction from Mapy.cz routes
+- [x] Automatic sync to Garmin Connect
+- [x] Sync history tracking
+- [x] Popup UI for login and route sync
+- [x] Encrypted token storage
+
+### Technical Stack
+- TypeScript 5.4.5
+- Webpack 5.91.0
+- Jest for testing
+- Chrome Extension API (Manifest V3)
+- xmldom for GPX parsing
+
+### Files Structure
+- src/background/ - Service worker and API clients
+- src/content/ - Content scripts for Mapy.cz
+- src/popup/ - Extension popup UI
+- src/lib/ - Shared libraries (GPX parser, storage)
+- src/shared/ - Types and error definitions

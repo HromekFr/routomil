@@ -37,7 +37,9 @@
     "test:integration": "jest tests/extension-integration.test.js",
     "test:e2e": "jest tests/e2e --runInBand",
     "test:all": "npm run build:skip-tests && npm run test && npm run test:integration",
-    "test:api": "node test-course-api.js cookies.txt export.gpx"
+    "test:api": "node test-course-api.js cookies.txt export.gpx",
+    "version": "node scripts/sync-version.js && git add manifest.json",
+    "package": "node scripts/package-extension.js"
   },
   "dependencies": {
     "xmldom": "^0.6.0"
