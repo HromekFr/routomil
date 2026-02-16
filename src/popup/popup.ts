@@ -15,6 +15,8 @@ const mainView = document.getElementById('main-view')!;
 const loginBtn = document.getElementById('login-btn') as HTMLButtonElement;
 const loginError = document.getElementById('login-error')!;
 const userName = document.getElementById('user-name')!;
+const userAvatarImg = document.getElementById('user-avatar-img') as HTMLImageElement;
+const userAvatarFallback = document.getElementById('user-avatar-fallback')!;
 const logoutBtn = document.getElementById('logout-btn')!;
 const defaultActivitySelect = document.getElementById('default-activity') as HTMLSelectElement;
 const showNotificationsCheckbox = document.getElementById('show-notifications') as HTMLInputElement;
@@ -65,9 +67,35 @@ function showLoginView(): void {
 }
 
 function showMainView(auth: AuthStatus): void {
+  console.log('[Popup] showMainView called with auth:', {
+    username: auth.username,
+    displayName: auth.displayName,
+    hasProfileImageUrl: !!auth.profileImageUrl,
+    profileImageUrl: auth.profileImageUrl
+  });
+
   loginView.classList.add('hidden');
   mainView.classList.remove('hidden');
-  userName.textContent = auth.username || 'Connected';
+  userName.textContent = auth.displayName || auth.username || 'Connected';
+
+  // Handle avatar display
+  if (auth.profileImageUrl) {
+    console.log('[Popup] Setting avatar image:', auth.profileImageUrl);
+    userAvatarImg.src = auth.profileImageUrl;
+    userAvatarImg.classList.remove('hidden');
+    userAvatarFallback.classList.add('hidden');
+
+    // Fallback to SVG if image fails to load
+    userAvatarImg.onerror = () => {
+      console.log('[Popup] Avatar image failed to load, showing fallback');
+      userAvatarImg.classList.add('hidden');
+      userAvatarFallback.classList.remove('hidden');
+    };
+  } else {
+    console.log('[Popup] No profile image URL, showing SVG fallback');
+    userAvatarImg.classList.add('hidden');
+    userAvatarFallback.classList.remove('hidden');
+  }
 }
 
 async function handleLogin(): Promise<void> {
