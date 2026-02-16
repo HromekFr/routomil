@@ -1,5 +1,19 @@
 # Routomil Changelog
 
+## 2026-02-16 - CLAUDE.md Rewrite
+
+### Refactor: Condensed CLAUDE.md from 623 to 84 lines
+- [x] Removed completed migration checklists (Phases 1-8) — historical context
+- [x] Removed API payload examples — already in garmin-api.ts and messages.ts
+- [x] Removed debugging guides and cookie instructions — task-specific
+- [x] Removed duplicate file references and code snippets
+- [x] Added architecture diagram, code organization table, release checklist
+- [x] Files modified: CLAUDE.md
+
+### Impact
+- **Developer workflow:** CLAUDE.md is now a concise reference (~85 lines) with only universally applicable info
+- No code changes
+
 ## 2026-02-16 - CI/CD Infrastructure
 
 ### Feature: GitHub Actions Workflows & Release Automation
