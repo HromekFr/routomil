@@ -1,5 +1,24 @@
 # Routomil Changelog
 
+## 2026-02-17 - Refactor: Remove Settings Section from Popup UI
+
+### Summary
+Removed the dedicated "Settings" section (Default activity type dropdown) from the popup. The `defaultActivityType` stored preference still initialises the sync/folder activity selectors on popup open, so the setting remains functional without the redundant UI element.
+
+### Changes
+- **Removed** Settings `<div class="section">` block with the `#default-activity` select
+- **Removed** `defaultActivitySelect` DOM reference, its `change` event listener, and `saveSettings()` function
+- **Simplified** `loadSettings()` — initialises `syncActivityType` and `folderActivityType` from stored setting; no longer sets the removed element
+- **Removed** `.setting-row`, `.setting-row label`, `.setting-row select`, `.setting-row input[type="checkbox"]` CSS rules
+
+### Files Modified
+- `src/popup/popup.html` — removed Settings section block
+- `src/popup/popup.ts` — removed `defaultActivitySelect`, `saveSettings()`, simplified `loadSettings()`
+- `src/popup/popup.css` — removed `.setting-row` style block
+
+### Impact
+- Simpler popup UI; activity type still defaults to stored value via sync/folder selectors
+
 ## 2026-02-17 - Fix: Route-View Sync Failing with HTTP 500 on Certain Routes
 
 ### Summary
