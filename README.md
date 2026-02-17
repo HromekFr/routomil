@@ -46,7 +46,7 @@
 ## How It Works
 
 1. User plans a route on Mapy.cz
-2. Extension extracts route parameters from the URL and fetches GPX via Mapy.cz API
+2. A MAIN world content script uses `SMap.Coords` (Mapy.cz's own coordinate codec) to decode the route's waypoints — including delta-encoded coordinates — and fetches GPX directly from the Mapy.cz export API
 3. GPX is converted to Garmin Course JSON format (distances, elevation, bounding box)
 4. CSRF token is extracted from Garmin Connect
 5. Course is uploaded via Garmin's Course API
@@ -86,7 +86,8 @@ routomil/
 │   │   ├── garmin-auth.ts    # Browser-tab auth + CSRF extraction
 │   │   └── garmin-api.ts     # Garmin Course API client
 │   ├── content/              # Content scripts for mapy.cz
-│   │   ├── mapy-content.ts   # Content script entry point
+│   │   ├── fetch-interceptor.ts # MAIN world: SMap.Coords decode + GPX fetch
+│   │   ├── mapy-content.ts   # ISOLATED world: orchestrates sync flow
 │   │   └── route-extractor.ts
 │   ├── popup/                # Extension popup UI
 │   │   ├── popup.html
