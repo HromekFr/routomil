@@ -1,5 +1,29 @@
 # Routomil Changelog
 
+## 2026-02-17 - Fix: GarminCoursePoint field names and types
+
+### Bug Fix: Course 500 Error — Course Points Payload Mismatch
+Corrected course point structure to match the Garmin Connect Course API's expected format, resolving 500 errors on upload.
+
+### Changes
+- **`coursePointType`:** Changed from `number` (5) to `string` (`"GENERIC"`) as required by the API
+- **`lat`/`lon`:** Renamed from `latitude`/`longitude` to match the API field names
+- **`distance`:** Added — metres from route start, computed by finding the nearest track point
+- **`elevation`:** Added — taken from the nearest track point
+- **`timestamp`/`coursePointId`:** Added as `null` to match the full API schema
+- **Debug log removed:** Cleaned up `console.log` in `garmin-api.ts` used during investigation
+
+### Files Modified
+- `src/shared/messages.ts` — `GarminCoursePoint` interface updated
+- `src/lib/gpx-parser.ts` — course point construction rewritten; `cumulativeDists[]` array built during geoPoints loop and reused
+- `tests/gpx-parser.test.ts` — assertions updated to match new field names and types
+- `src/background/garmin-api.ts` — debug log removed
+
+### Impact
+- Garmin Connect now accepts course points; turn-by-turn waypoints appear on device
+
+---
+
 ## 2026-02-16 - Security: Fix XSS Vulnerability in Profile Image URL Handling
 
 ### Critical Fix: Remediate CodeQL DOM-Based XSS Vulnerabilities
