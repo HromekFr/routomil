@@ -150,7 +150,7 @@ describe('mapy-url-parser', () => {
   });
 
   describe('buildMapyExportUrl', () => {
-    it('should prefer rc over rg in export URL', () => {
+    it('should build export URL with all parameters', () => {
       const params: MapyRouteParams = {
         rc: '9hChxxXvtO95rPhx1qo5',
         rg: ['9hChxxXvtO', '95rPhx1qo5'],
@@ -167,31 +167,13 @@ describe('mapy-url-parser', () => {
       expect(urlObj.origin).toBe('https://mapy.com');
       expect(urlObj.pathname).toBe('/api/tplannerexport');
       expect(urlObj.searchParams.get('export')).toBe('gpx');
-      expect(urlObj.searchParams.get('rc')).toBe('9hChxxXvtO95rPhx1qo5');
-      expect(urlObj.searchParams.has('rg')).toBe(false); // rc takes precedence
+      expect(urlObj.searchParams.get('rp_c')).toBe('121');
+      expect(urlObj.searchParams.getAll('rg')).toEqual(['9hChxxXvtO', '95rPhx1qo5']);
       expect(urlObj.searchParams.getAll('rs')).toEqual(['muni', 'muni']);
       expect(urlObj.searchParams.getAll('ri')).toEqual(['3468', '1818']);
       expect(urlObj.searchParams.get('rp_aw')).toBe('1;9hSCBxYCBz9hje0xYNZD9hxS.xYg4DlhdxZAUp95R9hxZSY695frPxZhW5it4x-DpIkBrx-dKEmkRx10HRip2x1Viq');
       expect(urlObj.searchParams.has('rand')).toBe(true);
       expect(urlObj.searchParams.has('rut')).toBe(false);
-    });
-
-    it('should fall back to rg when rc is null', () => {
-      const params: MapyRouteParams = {
-        rc: null,
-        rg: ['9hChxxXvtO', '95rPhx1qo5'],
-        rs: ['muni', 'muni'],
-        ri: ['3468', '1818'],
-        rp_c: '121',
-        rp_aw: null,
-        rut: null,
-      };
-
-      const url = buildMapyExportUrl(params);
-      const urlObj = new URL(url);
-
-      expect(urlObj.searchParams.has('rc')).toBe(false);
-      expect(urlObj.searchParams.getAll('rg')).toEqual(['9hChxxXvtO', '95rPhx1qo5']);
     });
 
     it('should include rut in URL when present', () => {
@@ -209,7 +191,7 @@ describe('mapy-url-parser', () => {
       const urlObj = new URL(url);
 
       expect(urlObj.searchParams.get('rut')).toBe('1');
-      expect(urlObj.searchParams.get('rc')).toBe('9gVJ8x1uBMhaqWi');
+      expect(urlObj.searchParams.getAll('rg')).toEqual(['9gVJ8x1uBM', 'haqWi']);
     });
 
     it('should build export URL with minimal parameters', () => {
@@ -263,8 +245,7 @@ describe('mapy-url-parser', () => {
       const urlObj = new URL(exportUrl);
 
       expect(urlObj.searchParams.get('export')).toBe('gpx');
-      expect(urlObj.searchParams.get('rc')).toBe(params.rc); // rc passed directly
-      expect(urlObj.searchParams.has('rg')).toBe(false);     // rg not used when rc present
+      expect(urlObj.searchParams.getAll('rg')).toEqual(params.rg);
       expect(urlObj.searchParams.getAll('rs')).toEqual(params.rs);
       expect(urlObj.searchParams.getAll('ri')).toEqual(params.ri);
       expect(urlObj.searchParams.get('rp_c')).toBe(params.rp_c);

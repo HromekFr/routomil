@@ -104,11 +104,8 @@ export function buildMapyExportUrl(params: MapyRouteParams): string {
     url.searchParams.set('rp_c', params.rp_c);
   }
 
-  // Route coordinates: prefer original rc (handles abbreviated coords)
-  // over split rg chunks (which break on non-10-char encodings)
-  if (params.rc) {
-    url.searchParams.set('rc', params.rc);
-  } else if (params.rg) {
+  // Coordinate chunks (rg)
+  if (params.rg) {
     params.rg.forEach(rg => url.searchParams.append('rg', rg));
   }
 
