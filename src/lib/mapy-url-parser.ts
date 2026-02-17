@@ -1,7 +1,8 @@
 // Mapy.cz URL parsing and route parameter extraction
 
 export interface MapyRouteParams {
-  rg: string[];         // rc split into 10-char chunks (coordinate data)
+  rc: string | null;    // original rc value from URL (may contain abbreviated coords)
+  rg: string[];         // rc split into 10-char chunks (fallback when rc unavailable)
   rs: string[];         // stop types (e.g., 'muni', 'ward')
   ri: string[];         // stop IDs
   rp_c: string | null;  // route profile from mrp.c (e.g., '121' for cycling)
@@ -36,7 +37,8 @@ export function parseMapyUrl(urlString: string): MapyRouteParams {
   const rwp = params.get('rwp');
 
   const result: MapyRouteParams = {
-    rg: rc ? splitRcToRg(rc) : [],     // Split rc into 10-char chunks
+    rc,                                // Original rc (may contain abbreviated coords)
+    rg: rc ? splitRcToRg(rc) : [],     // Split rc into 10-char chunks (fallback)
     rs: params.getAll('rs'),           // Stop types
     ri: params.getAll('ri'),           // Stop IDs
     rp_aw: rwp,                        // Route waypoints (rwp → rp_aw)
@@ -102,8 +104,11 @@ export function buildMapyExportUrl(params: MapyRouteParams): string {
     url.searchParams.set('rp_c', params.rp_c);
   }
 
-  // Coordinate chunks (rg)
-  if (params.rg) {
+  // Route coordinates: prefer original rc (handles abbreviated coords)
+  // over split rg chunks (which break on non-10-char encodings)
+  if (params.rc) {
+    url.searchParams.set('rc', params.rc);
+  } else if (params.rg) {
     params.rg.forEach(rg => url.searchParams.append('rg', rg));
   }
 

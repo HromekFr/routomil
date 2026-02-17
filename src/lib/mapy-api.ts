@@ -12,7 +12,7 @@ import { MapyGarminError, ErrorCode } from '../shared/errors';
  * @throws MapyGarminError if fetch fails or response is invalid
  */
 export async function fetchGpxFromMapy(params: MapyRouteParams): Promise<string> {
-  if (!params.rg || params.rg.length === 0) {
+  if (!params.rc && (!params.rg || params.rg.length === 0)) {
     throw new MapyGarminError(
       'No route coordinates found in URL',
       ErrorCode.ROUTE_EXTRACTION_FAILED
