@@ -34,6 +34,12 @@ const syncResult = document.getElementById('sync-result')!;
 
 // Initialize popup
 async function init(): Promise<void> {
+  // Set version from manifest
+  const versionEl = document.getElementById('version');
+  if (versionEl) {
+    versionEl.textContent = 'v' + chrome.runtime.getManifest().version;
+  }
+
   // Check authentication status
   const authStatus = await checkAuth();
 
