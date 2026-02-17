@@ -6,6 +6,7 @@ module.exports = {
   entry: {
     'service-worker': './src/background/service-worker.ts',
     'mapy-content': './src/content/mapy-content.ts',
+    'fetch-interceptor': './src/content/fetch-interceptor.ts',
     'popup': './src/popup/popup.ts',
   },
   output: {

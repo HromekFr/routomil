@@ -1,5 +1,37 @@
 # Routomil Changelog
 
+## 2026-02-17 - Fix: Route sync for coordinate-type waypoints via GPX interception
+
+### Summary
+Routes containing coordinate-type waypoints (map pins, e.g. `49.9332N, 17.0118E`) previously failed with HTTP 500 from the Mapy.cz export API. Two root causes: (1) the URL's `rc` parameter uses delta encoding for non-first coordinates, and (2) the `rwp`/`rp_aw` route-path data is never present in the URL for such routes — it exists only in Mapy.cz's internal JS state. The fix intercepts Mapy.cz's own GPX export via a MAIN world `window.fetch` patch, then pipes the correct GPX directly to the Garmin upload flow.
+
+### Root cause
+- **Delta-encoded `rc`**: `splitRcToRg()` naively splits into 10-char chunks, but coordinate waypoints produce abbreviated (non-10-char) delta-encoded segments, yielding garbage coordinates for the export API.
+- **Missing `rwp`/`rp_aw`**: For coordinate waypoints, route-path data is never serialised into the URL; the export API therefore has no geometry to work with.
+
+### Changes
+- **New** `src/content/fetch-interceptor.ts` — MAIN world content script that uses `SMap.Coords.stringToCoords()` (Mapy.cz's own coordinate codec, only accessible from MAIN world) to decode the delta-encoded `rc` URL parameter into absolute coordinates, re-encodes each as a 10-char `rg` chunk, constructs the `tplannerexport` URL, fetches the GPX directly, and posts it back via `ROUTOMIL_GPX_INTERCEPTED`. No UI interaction, no file download.
+- **Updated** `manifest.json` — added second content script entry for `fetch-interceptor.js` with `"world": "MAIN"` and `"run_at": "document_start"`
+- **Updated** `webpack.config.js` — added `fetch-interceptor` entry point
+- **Added** `SYNC_ROUTE_GPX` message type to `BackgroundMessage` union in `src/shared/messages.ts`
+- **Added** `handleSyncRouteGpx()` to `src/background/service-worker.ts` — receives raw GPX, parses, converts, and uploads (skips the Mapy API fetch step)
+- **Added** `requestInterceptedGpx()` and `handleSyncViaIntercept()` to `src/content/mapy-content.ts`
+- **Modified** `EXTRACT_AND_SYNC` handler in `src/content/mapy-content.ts` — uses URL-parsing fast path when `rwp` is present (named waypoints); falls back to GPX interception when `rwp` is absent (coordinate waypoints)
+
+### Files Modified
+- `src/content/fetch-interceptor.ts` — **new file**
+- `manifest.json` — added MAIN world content script entry
+- `webpack.config.js` — added fetch-interceptor entry point
+- `src/shared/messages.ts` — added `SYNC_ROUTE_GPX` message type
+- `src/background/service-worker.ts` — added `handleSyncRouteGpx()` handler
+- `src/content/mapy-content.ts` — added interception flow and detection logic
+
+### Impact
+- Routes with coordinate-type waypoints now sync successfully
+- Routes with named waypoints continue to use the existing fast URL-parsing path
+- Folder sync is unaffected
+- No side effects: the export is a direct API call, invisible to the user — no file download, no UI changes
+
 ## 2026-02-17 - Fix: Auto-trigger re-login when Garmin session expires during sync
 
 ### Summary

@@ -83,11 +83,19 @@ describe('Chrome Extension Integration Tests', () => {
     test('content scripts are properly configured', () => {
       expect(manifest.content_scripts).toBeDefined();
       expect(Array.isArray(manifest.content_scripts)).toBe(true);
-      expect(manifest.content_scripts.length).toBeGreaterThan(0);
+      expect(manifest.content_scripts.length).toBeGreaterThanOrEqual(2);
 
-      const mapyContent = manifest.content_scripts[0];
+      // MAIN world fetch interceptor (document_start)
+      const fetchInterceptor = manifest.content_scripts.find(cs => cs.js && cs.js.includes('fetch-interceptor.js'));
+      expect(fetchInterceptor).toBeDefined();
+      expect(fetchInterceptor.matches).toContain('https://mapy.cz/*');
+      expect(fetchInterceptor.world).toBe('MAIN');
+      expect(fetchInterceptor.run_at).toBe('document_start');
+
+      // ISOLATED content script (document_idle)
+      const mapyContent = manifest.content_scripts.find(cs => cs.js && cs.js.includes('mapy-content.js'));
+      expect(mapyContent).toBeDefined();
       expect(mapyContent.matches).toContain('https://mapy.cz/*');
-      expect(mapyContent.js).toContain('mapy-content.js');
     });
 
     test('permissions are declared', () => {

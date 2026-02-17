@@ -7,6 +7,9 @@ import { fetchGpxFromFolder, validateFolderGpx } from '../lib/mapy-folder-api';
 import { parseMapyUrl, hasRouteParams } from '../lib/mapy-url-parser';
 import { ActivityType, BackgroundResponse } from '../shared/messages';
 
+const ROUTOMIL_SOURCE = 'routomil-extension';
+const ALLOWED_MAPY_ORIGINS = ['https://mapy.cz', 'https://en.mapy.cz', 'https://mapy.com'];
+
 // Initialize when DOM is ready
 function initialize(): void {
   console.log('Mapy.cz → Garmin Sync: Content script loaded');
@@ -105,6 +108,95 @@ async function handleSyncFolderFromPopup(activityType: ActivityType): Promise<{ 
   }
 }
 
+/**
+ * Promise-based postMessage exchange with the MAIN world fetch interceptor.
+ * Sends ROUTOMIL_REQUEST_EXPORT and waits for ROUTOMIL_GPX_INTERCEPTED.
+ */
+function requestInterceptedGpx(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      window.removeEventListener('message', handler);
+      reject(new Error('GPX interception timed out after 15 seconds'));
+    }, 15000);
+
+    function handler(event: MessageEvent): void {
+      if (!ALLOWED_MAPY_ORIGINS.includes(event.origin)) return;
+      if (event.data?.source !== ROUTOMIL_SOURCE) return;
+      if (event.data?.type !== 'ROUTOMIL_GPX_INTERCEPTED') return;
+
+      clearTimeout(timeoutId);
+      window.removeEventListener('message', handler);
+
+      if (event.data.error) {
+        reject(new Error(event.data.error as string));
+      } else if (typeof event.data.gpx === 'string') {
+        resolve(event.data.gpx as string);
+      } else {
+        reject(new Error('Invalid GPX interception response'));
+      }
+    }
+
+    window.addEventListener('message', handler);
+
+    // Trigger the export in MAIN world
+    window.postMessage({ type: 'ROUTOMIL_REQUEST_EXPORT', source: ROUTOMIL_SOURCE }, '*');
+  });
+}
+
+/**
+ * Sync a route by intercepting Mapy.cz's own GPX export.
+ * Used for routes with coordinate-type waypoints where the URL's rc is delta-encoded.
+ */
+async function handleSyncViaIntercept(
+  activityType: ActivityType
+): Promise<{ success: boolean; error?: string; errorCode?: string; courseUrl?: string }> {
+  console.log('Mapy.cz → Garmin Sync: Starting sync via GPX interception as', activityType);
+
+  try {
+    // Check authentication
+    const authResponse = await sendMessage({ type: 'CHECK_AUTH' });
+    if (!authResponse.success || !(authResponse.data as { isAuthenticated: boolean })?.isAuthenticated) {
+      return { success: false, error: 'Please log in to Garmin Connect in the extension popup' };
+    }
+
+    const routeName = extractRouteName() || 'Mapy.cz Route';
+
+    // Request GPX via MAIN world interceptor
+    let gpxContent: string;
+    try {
+      gpxContent = await requestInterceptedGpx();
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'Failed to intercept GPX export',
+      };
+    }
+
+    // Basic GPX validation
+    if (!gpxContent.includes('<gpx')) {
+      return { success: false, error: 'Intercepted content is not valid GPX' };
+    }
+
+    // Send GPX to service worker for parsing and upload
+    const syncResponse = await sendMessage({
+      type: 'SYNC_ROUTE_GPX',
+      gpxContent,
+      routeName,
+      activityType,
+    });
+
+    if (syncResponse.success) {
+      const data = syncResponse.data as { courseUrl?: string };
+      return { success: true, courseUrl: data?.courseUrl };
+    } else {
+      return { success: false, error: syncResponse.error || 'Sync failed', errorCode: syncResponse.errorCode };
+    }
+  } catch (error) {
+    console.error('Mapy.cz → Garmin Sync: Error during interception sync', error);
+    return { success: false, error: error instanceof Error ? error.message : 'An error occurred during sync' };
+  }
+}
+
 function sendMessage(message: unknown): Promise<BackgroundResponse> {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(message, response => {
@@ -140,11 +232,20 @@ chrome.runtime.onMessage.addListener((message: { type: string; activityType?: Ac
     });
     return true;
   } else if (message.type === 'EXTRACT_AND_SYNC') {
-    // Extract and sync the route
+    // Extract and sync the route.
+    // If the URL lacks a `rwp` parameter (coordinate-type waypoints with delta-encoded rc),
+    // use the MAIN world fetch interceptor. Otherwise, use the fast URL-parsing path.
     const activityType = message.activityType || 'cycling';
-    handleSyncFromPopup(activityType).then(result => {
-      sendResponse(result);
-    });
+    const currentUrl = window.location.href;
+    const hasRwp = (() => {
+      try { return new URL(currentUrl).searchParams.has('rwp'); } catch { return false; }
+    })();
+
+    if (hasRwp) {
+      handleSyncFromPopup(activityType).then(result => { sendResponse(result); });
+    } else {
+      handleSyncViaIntercept(activityType).then(result => { sendResponse(result); });
+    }
     return true;
   } else if (message.type === 'EXTRACT_AND_SYNC_FOLDER') {
     // Extract and sync the folder
