@@ -1,5 +1,25 @@
 # Routomil Changelog
 
+## 2026-02-17 - Fix: Pass `rut` Parameter to Mapy.cz Export API
+
+### Summary
+Route-view sync failed with HTTP 500 on routes whose Mapy.cz URL contains a `rut` (route update token) parameter. The parameter was silently dropped during URL reconstruction, causing Mapy.cz to reject the export request.
+
+### Changes
+- `MapyRouteParams` interface gains `rut: string | null` field
+- `parseMapyUrl` now extracts `rut` from the source URL
+- `buildMapyExportUrl` now includes `rut` in the API request when present
+
+### Files Modified
+- `src/lib/mapy-url-parser.ts` — interface, parser, URL builder
+- `tests/mapy-url-parser.test.ts` — 3 new tests + updated inline fixtures
+
+### Impact
+- Route-view sync now works for routes that require `rut` (e.g. routes using street-type stops)
+- Folder-view sync unaffected (GPX fetched by the content script, not this path)
+
+---
+
 ## 2026-02-17 - Fix: Critical Hiking Activity Type and GeoPoint Timestamp
 
 ### Summary

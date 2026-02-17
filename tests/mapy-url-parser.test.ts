@@ -82,6 +82,20 @@ describe('mapy-url-parser', () => {
       expect(result.rp_aw).toBeNull();
     });
 
+    it('should extract rut parameter when present', () => {
+      const url = 'https://mapy.com?rc=9gVJ8x1uBMhaqWi&rs=stre&rs=muni&ri=85610&ri=1665&rut=1';
+      const result = parseMapyUrl(url);
+
+      expect(result.rut).toBe('1');
+    });
+
+    it('should set rut to null when absent', () => {
+      const url = 'https://mapy.com?rc=9hChxxXvtO95rPhx1qo5';
+      const result = parseMapyUrl(url);
+
+      expect(result.rut).toBeNull();
+    });
+
     it('should handle URL with only minimal parameters', () => {
       const url = 'https://mapy.com?rc=testcoords';
       const result = parseMapyUrl(url);
@@ -142,6 +156,7 @@ describe('mapy-url-parser', () => {
         ri: ['3468', '1818'],
         rp_c: '121',
         rp_aw: '1;9hSCBxYCBz9hje0xYNZD9hxS.xYg4DlhdxZAUp95R9hxZSY695frPxZhW5it4x-DpIkBrx-dKEmkRx10HRip2x1Viq',
+        rut: null,
       };
 
       const url = buildMapyExportUrl(params);
@@ -157,6 +172,23 @@ describe('mapy-url-parser', () => {
       expect(urlObj.searchParams.getAll('ri')).toEqual(['3468', '1818']);
       expect(urlObj.searchParams.get('rp_aw')).toBe('1;9hSCBxYCBz9hje0xYNZD9hxS.xYg4DlhdxZAUp95R9hxZSY695frPxZhW5it4x-DpIkBrx-dKEmkRx10HRip2x1Viq');
       expect(urlObj.searchParams.has('rand')).toBe(true); // Cache buster
+      expect(urlObj.searchParams.has('rut')).toBe(false); // Not present when null
+    });
+
+    it('should include rut in URL when present', () => {
+      const params: MapyRouteParams = {
+        rg: ['9gVJ8x1uBM', 'haqWi'],
+        rs: ['stre', 'muni'],
+        ri: ['85610', '1665'],
+        rp_c: '132',
+        rp_aw: '1;9gVW2x19rn',
+        rut: '1',
+      };
+
+      const url = buildMapyExportUrl(params);
+      const urlObj = new URL(url);
+
+      expect(urlObj.searchParams.get('rut')).toBe('1');
     });
 
     it('should build export URL with minimal parameters', () => {
@@ -166,6 +198,7 @@ describe('mapy-url-parser', () => {
         ri: [],
         rp_c: null,
         rp_aw: null,
+        rut: null,
       };
 
       const url = buildMapyExportUrl(params);
@@ -184,6 +217,7 @@ describe('mapy-url-parser', () => {
         ri: [],
         rp_c: null,
         rp_aw: null,
+        rut: null,
       };
 
       const url1 = buildMapyExportUrl(params);
@@ -211,6 +245,7 @@ describe('mapy-url-parser', () => {
       expect(urlObj.searchParams.getAll('ri')).toEqual(params.ri);
       expect(urlObj.searchParams.get('rp_c')).toBe(params.rp_c);
       expect(urlObj.searchParams.get('rp_aw')).toBe(params.rp_aw);
+      expect(urlObj.searchParams.get('rut')).toBe(params.rut);
     });
   });
 });
