@@ -47,6 +47,11 @@ async function init(): Promise<void> {
     await loadSettings();
     await loadSyncHistory();
     await checkCurrentRoute();
+
+    // If profile data is missing (e.g. after extension re-add), fetch it in background
+    if (!authStatus.displayName) {
+      refreshProfile(); // non-blocking, updates UI when done
+    }
   } else {
     showLoginView();
   }
@@ -159,6 +164,17 @@ function showError(message: string): void {
 async function checkAuth(): Promise<AuthStatus> {
   const response = await sendMessage({ type: 'CHECK_AUTH' });
   return (response.data as AuthStatus) || { isAuthenticated: false };
+}
+
+async function refreshProfile(): Promise<void> {
+  try {
+    const response = await sendMessage({ type: 'REFRESH_PROFILE' });
+    if (response.success && response.data) {
+      showMainView(response.data as AuthStatus);
+    }
+  } catch (error) {
+    // Silently fail - "Garmin User" stays if profile can't be fetched
+  }
 }
 
 async function loadSettings(): Promise<void> {

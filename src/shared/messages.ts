@@ -23,7 +23,8 @@ export type BackgroundMessage =
   | { type: 'SYNC_FOLDER_GPX'; gpxContent: string; folderName: string; activityType: ActivityType }
   | { type: 'GET_SYNC_HISTORY' }
   | { type: 'GET_SETTINGS' }
-  | { type: 'SET_SETTINGS'; settings: Partial<ExtensionSettings> };
+  | { type: 'SET_SETTINGS'; settings: Partial<ExtensionSettings> }
+  | { type: 'REFRESH_PROFILE' };
 
 export interface BackgroundResponse {
   success: boolean;

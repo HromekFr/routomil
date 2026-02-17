@@ -67,6 +67,9 @@ async function handleMessage(message: BackgroundMessage): Promise<BackgroundResp
     case 'SET_SETTINGS':
       return handleSetSettings(message.settings);
 
+    case 'REFRESH_PROFILE':
+      return handleRefreshProfile();
+
     default:
       return { success: false, error: 'Unknown message type' };
   }
@@ -243,6 +246,18 @@ async function handleSyncFolderGpx(
     notifyTabs({ type: 'SYNC_STATUS', status: 'error', message: errorMessage });
 
     return { success: false, error: errorMessage };
+  }
+}
+
+async function handleRefreshProfile(): Promise<BackgroundResponse> {
+  try {
+    await getCsrfToken(); // Fetches connect.garmin.com/modern, extracts and saves profile
+    const auth = await checkAuth();
+    return { success: true, data: auth };
+  } catch (error) {
+    // Profile refresh failure is non-fatal - return current auth state
+    const auth = await checkAuth();
+    return { success: true, data: auth };
   }
 }
 
