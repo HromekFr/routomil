@@ -92,6 +92,10 @@ async function fetchGpxViaSMap(): Promise<string> {
   pageUrl.searchParams.getAll('rs').forEach(rs => exportUrl.searchParams.append('rs', rs));
   pageUrl.searchParams.getAll('ri').forEach(ri => exportUrl.searchParams.append('ri', ri));
 
+  // Route waypoints path data (rwp → rp_aw) — required for coordinate-only and some mixed routes
+  const rwp = pageUrl.searchParams.get('rwp');
+  if (rwp) exportUrl.searchParams.set('rp_aw', rwp);
+
   // Route update token (present on some routes)
   const rut = pageUrl.searchParams.get('rut');
   if (rut) exportUrl.searchParams.set('rut', rut);

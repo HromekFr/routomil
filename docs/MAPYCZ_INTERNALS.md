@@ -132,6 +132,32 @@ Loader._files    // object — only 3 keys: 'css', 'single', 'multi' (the loaded
 
 ---
 
+## `rwp` / `rp_aw` — route waypoints path data
+
+The URL parameter `rwp` encodes the computed route path for **coordinate-only and mixed coordinate/named routes**. It is passed as `rp_aw` to `tplannerexport`.
+
+**When present:** routes where at least one waypoint is a coordinate pin (`rs=coor`) AND the route has been computed. The value is opaque (e.g. `1;9nayVxXJPFMuflE`).
+
+**When absent:** named-waypoint-only routes (all `rs=muni`).
+
+**Required by export API:** yes, when present in the page URL — omitting it causes HTTP 500.
+
+### Example (coordinate → coordinate)
+
+| Source | Value |
+|--------|-------|
+| Page URL `rc` | `9naLtxXJkLg.0f1Z` (18 chars — second waypoint is 6-char delta `g.0f1Z`) |
+| Page URL `rwp` | `1;9nayVxXJPFMuflE` |
+| Export `rg[0]` | `9naLtxXJkL` (absolute, same as rc[0:10]) |
+| Export `rg[1]` | `9nbKtxXJKj` (decoded from delta `g.0f1Z` via `SMap.Coords.stringToCoords`) |
+| Export `rp_aw` | `1;9nayVxXJPFMuflE` (forwarded directly from `rwp`) |
+
+### Key insight: `rwp` presence does NOT indicate delta-free `rc`
+
+Early implementation used `rwp` presence as a proxy for "safe to split rc every 10 chars". This was wrong — coordinate→coordinate routes have **both** `rwp` AND a delta-encoded `rc`. Always decode via `SMap.Coords.stringToCoords`.
+
+---
+
 ## `tplannerexport` API
 
 **Endpoint:** `https://mapy.com/api/tplannerexport`
@@ -148,6 +174,7 @@ Loader._files    // object — only 3 keys: 'css', 'single', 'multi' (the loaded
 | `rg` | decoded from `rc` via `SMap.Coords` | One per waypoint, 10-char absolute; **repeat param** |
 | `rs` | `rs` from URL | Stop type (`muni`, `coor`, …); **repeat param** |
 | `ri` | `ri` from URL | Stop ID (empty string for coordinate pins); **repeat param** |
+| `rp_aw` | `rwp` from URL (optional) | Route waypoints path data — required when `rwp` is present; omitting causes HTTP 500 |
 | `rut` | `rut` from URL (optional) | Route update token |
 | `rand` | random float | Cache buster |
 
