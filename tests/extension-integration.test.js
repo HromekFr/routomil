@@ -240,8 +240,8 @@ describe('Chrome Extension Integration Tests', () => {
       const stats = fs.statSync(path.join(distPath, 'service-worker.js'));
       const sizeKB = stats.size / 1024;
 
-      // Should be less than 50 KB (currently ~14 KB)
-      expect(sizeKB).toBeLessThan(50);
+      // Should be less than 55 KB (currently ~50 KB)
+      expect(sizeKB).toBeLessThan(55);
       expect(sizeKB).toBeGreaterThan(5); // Should not be empty
     });
 

@@ -55,6 +55,9 @@ async function handleMessage(message: BackgroundMessage): Promise<BackgroundResp
     case 'SYNC_ROUTE_FROM_URL':
       return handleSyncRouteFromUrl(message.routeParams, message.routeName, message.activityType);
 
+    case 'SYNC_FOLDER_GPX':
+      return handleSyncFolderGpx(message.gpxContent, message.folderName, message.activityType);
+
     case 'GET_SYNC_HISTORY':
       return handleGetSyncHistory();
 
@@ -160,6 +163,83 @@ async function handleSyncRouteFromUrl(
     await addSyncHistoryEntry(entry);
 
     // Notify any open tabs about failure
+    notifyTabs({ type: 'SYNC_STATUS', status: 'error', message: errorMessage });
+
+    return { success: false, error: errorMessage };
+  }
+}
+
+async function handleSyncFolderGpx(
+  gpxContent: string,
+  folderName: string,
+  activityType: ActivityType
+): Promise<BackgroundResponse> {
+  const entryId = crypto.randomUUID();
+  const entry: SyncHistoryEntry = {
+    id: entryId,
+    routeName: folderName,
+    activityType,
+    syncedAt: Date.now(),
+    success: false,
+  };
+
+  try {
+    console.log('Starting folder sync from GPX content');
+
+    // Parse GPX (handles both track points and waypoints)
+    const gpxRoute = parseGpx(gpxContent);
+
+    if (gpxRoute.points.length === 0) {
+      throw new MapyGarminError('Folder route has no points', ErrorCode.GPX_PARSE_ERROR);
+    }
+
+    console.log(
+      `Parsed folder route: ${gpxRoute.points.length} points, ${gpxRoute.waypoints.length} waypoints, ${gpxRoute.totalDistance.toFixed(0)}m`
+    );
+
+    // Use folder name if GPX name is generic
+    if (gpxRoute.name === 'Unnamed Route') {
+      gpxRoute.name = folderName;
+    }
+
+    // Get CSRF token
+    const csrfToken = await getCsrfToken();
+
+    // Convert to Garmin Course (includes course points from waypoints)
+    const courseData = convertGpxToGarminCourse(gpxRoute, activityType);
+
+    // Upload to Garmin
+    const { courseId } = await uploadCourse(courseData, csrfToken);
+
+    // Success
+    entry.success = true;
+    entry.garminCourseId = courseId;
+    await addSyncHistoryEntry(entry);
+
+    notifyTabs({ type: 'SYNC_STATUS', status: 'success', message: getCourseUrl(courseId) });
+
+    console.log('Folder sync completed successfully:', courseId);
+
+    return {
+      success: true,
+      data: {
+        courseId,
+        courseUrl: getCourseUrl(courseId),
+      },
+    };
+  } catch (error) {
+    const errorMessage =
+      error instanceof MapyGarminError
+        ? error.message
+        : error instanceof Error
+          ? error.message
+          : 'Unknown error';
+
+    console.error('Folder sync failed:', errorMessage);
+
+    entry.errorMessage = errorMessage;
+    await addSyncHistoryEntry(entry);
+
     notifyTabs({ type: 'SYNC_STATUS', status: 'error', message: errorMessage });
 
     return { success: false, error: errorMessage };

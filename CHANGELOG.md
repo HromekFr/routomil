@@ -1,5 +1,35 @@
 # Routomil Changelog
 
+## 2026-02-17 - Feature: Mapy.cz Folder Export with Course Points
+
+### New Feature: Sync Mapy.cz Folders to Garmin Connect
+Export routes from Mapy.cz user folders (My Maps) to Garmin Connect, including folder waypoints as Garmin course points for turn-by-turn navigation.
+
+### Changes
+- **Folder detection:** Automatically detects Mapy.cz folder pages via `cat=mista-trasy&mid=` URL parameters
+- **Folder export API:** Fetches GPX from `https://mapy.com/api/mapybox-export/v1/folder/gpx` using existing browser auth cookies
+- **Validation:** Rejects folders with 0 routes (empty) or >1 route (multiple routes unsupported)
+- **Course points:** Folder waypoints (`<wpt>`) are included as Garmin course points; names truncated to 15 chars (Garmin device limit)
+- **Waypoint warning:** Shows warning in popup when folder has >200 waypoints (older Garmin devices only support 200 course points)
+- **UI:** Popup detects folder vs route pages and shows appropriate "Sync Folder to Garmin" / "Sync to Garmin" button
+
+### Files Created
+- `src/lib/mapy-folder-api.ts` — `fetchGpxFromFolder()`, `validateFolderGpx()`, `buildFolderExportUrl()`
+- `src/content/folder-detector.ts` — `detectFolder()`, `isFolderPage()`, `extractFolderId()`, `extractFolderName()`
+
+### Files Modified
+- `src/shared/errors.ts` — Added `FOLDER_NOT_FOUND`, `FOLDER_EXPORT_FAILED`, `FOLDER_EMPTY`, `FOLDER_MULTIPLE_ROUTES` error codes and messages
+- `src/background/service-worker.ts` — Handles `SYNC_FOLDER_GPX` message, orchestrates folder sync flow
+- `src/content/mapy-content.ts` — Detects folder pages, extracts and sends GPX to service worker
+- `src/popup/popup.ts` — Shows "Sync Folder to Garmin" button on folder pages, handles folder sync response
+- `src/popup/popup.html` — Added folder sync button and waypoint count warning UI
+
+### Impact
+- Users can now sync an entire Mapy.cz folder (My Maps) to Garmin Connect in one click
+- Waypoints in the folder appear as course points on Garmin devices for turn-by-turn navigation
+
+---
+
 ## 2026-02-16 - Security: Fix XSS Vulnerability in Profile Image URL Handling
 
 ### Critical Fix: Remediate CodeQL DOM-Based XSS Vulnerabilities

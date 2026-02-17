@@ -26,6 +26,10 @@ const routeStatus = document.getElementById('route-status')!;
 const syncControls = document.getElementById('sync-controls')!;
 const syncRouteBtn = document.getElementById('sync-route-btn') as HTMLButtonElement;
 const syncActivityType = document.getElementById('sync-activity-type') as HTMLSelectElement;
+const folderSyncControls = document.getElementById('folder-sync-controls')!;
+const syncFolderBtn = document.getElementById('sync-folder-btn') as HTMLButtonElement;
+const folderActivityType = document.getElementById('folder-activity-type') as HTMLSelectElement;
+const folderWaypointWarning = document.getElementById('folder-waypoint-warning')!;
 const syncResult = document.getElementById('sync-result')!;
 
 // Initialize popup
@@ -55,6 +59,9 @@ function setupEventListeners(): void {
 
   // Sync button
   syncRouteBtn.addEventListener('click', handleSyncRoute);
+
+  // Sync folder button
+  syncFolderBtn.addEventListener('click', handleSyncFolder);
 
   // Settings changes
   defaultActivitySelect.addEventListener('change', saveSettings);
@@ -155,6 +162,8 @@ async function loadSettings(): Promise<void> {
   if (response.success && response.data) {
     const settings = response.data as ExtensionSettings;
     defaultActivitySelect.value = settings.defaultActivityType;
+    syncActivityType.value = settings.defaultActivityType;
+    folderActivityType.value = settings.defaultActivityType;
     showNotificationsCheckbox.checked = settings.showSyncNotifications;
   }
 }
@@ -241,11 +250,16 @@ async function checkCurrentRoute(): Promise<void> {
       return;
     }
 
-    // Ask content script if there's a route
-    const response = await sendMessageToTab(tab.id, { type: 'CHECK_ROUTE' });
+    // Check for folder first, then route
+    const [folderResponse, routeResponse] = await Promise.all([
+      sendMessageToTab(tab.id, { type: 'CHECK_FOLDER' }).catch(() => null),
+      sendMessageToTab(tab.id, { type: 'CHECK_ROUTE' }).catch(() => null),
+    ]);
 
-    if (response?.hasRoute) {
-      showRouteFound(response.routeName || 'Current route');
+    if (folderResponse?.hasFolder) {
+      showFolderFound(folderResponse.folderName || 'Mapy.cz Folder');
+    } else if (routeResponse?.hasRoute) {
+      showRouteFound(routeResponse.routeName || 'Current route');
     } else {
       showNoRouteStatus();
     }
@@ -260,14 +274,25 @@ function showRouteFound(routeName: string): void {
   statusMessage.textContent = `Route found: ${routeName}`;
   statusMessage.className = 'status-message route-found';
   syncControls.classList.remove('hidden');
+  folderSyncControls.classList.add('hidden');
+  syncResult.classList.add('hidden');
+}
+
+function showFolderFound(folderName: string): void {
+  const statusMessage = routeStatus.querySelector('.status-message') as HTMLElement;
+  statusMessage.textContent = `Folder found: ${folderName}`;
+  statusMessage.className = 'status-message route-found';
+  syncControls.classList.add('hidden');
+  folderSyncControls.classList.remove('hidden');
   syncResult.classList.add('hidden');
 }
 
 function showNoRouteStatus(): void {
   const statusMessage = routeStatus.querySelector('.status-message') as HTMLElement;
-  statusMessage.textContent = 'Open a route on mapy.cz';
+  statusMessage.textContent = 'Open a route or folder on mapy.cz';
   statusMessage.className = 'status-message no-route';
   syncControls.classList.add('hidden');
+  folderSyncControls.classList.add('hidden');
   syncResult.classList.add('hidden');
 }
 
@@ -304,6 +329,46 @@ async function handleSyncRoute(): Promise<void> {
   } finally {
     syncRouteBtn.disabled = false;
     syncRouteBtn.classList.remove('syncing');
+  }
+}
+
+async function handleSyncFolder(): Promise<void> {
+  syncFolderBtn.disabled = true;
+  syncFolderBtn.classList.add('syncing');
+  syncResult.classList.add('hidden');
+  folderWaypointWarning.classList.add('hidden');
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    if (!tab || !tab.id) {
+      throw new Error('No active tab found');
+    }
+
+    const activityType = folderActivityType.value as 'cycling' | 'hiking';
+
+    const response = await sendMessageToTab(tab.id, {
+      type: 'EXTRACT_AND_SYNC_FOLDER',
+      activityType,
+    });
+
+    if (response?.success) {
+      // Show waypoint warning if >200 waypoints
+      if (response.waypointCount && response.waypointCount > 200) {
+        folderWaypointWarning.textContent = `Note: This folder has ${response.waypointCount} waypoints. Some older Garmin devices only support up to 200 course points.`;
+        folderWaypointWarning.classList.remove('hidden');
+      }
+      showSyncSuccess(response.courseUrl);
+      await loadSyncHistory();
+    } else {
+      showSyncError(response?.error || 'Failed to sync folder');
+    }
+  } catch (error) {
+    console.error('Folder sync error:', error);
+    showSyncError(error instanceof Error ? error.message : 'An error occurred');
+  } finally {
+    syncFolderBtn.disabled = false;
+    syncFolderBtn.classList.remove('syncing');
   }
 }
 
