@@ -32,6 +32,12 @@ export enum ErrorCode {
   STORAGE_ERROR = 'STORAGE_ERROR',
   ENCRYPTION_ERROR = 'ENCRYPTION_ERROR',
 
+  // Folder errors
+  FOLDER_NOT_FOUND = 'FOLDER_NOT_FOUND',
+  FOLDER_EXPORT_FAILED = 'FOLDER_EXPORT_FAILED',
+  FOLDER_EMPTY = 'FOLDER_EMPTY',
+  FOLDER_MULTIPLE_ROUTES = 'FOLDER_MULTIPLE_ROUTES',
+
   // Security errors
   URL_VALIDATION = 'URL_VALIDATION',
 
@@ -56,6 +62,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
 
   [ErrorCode.STORAGE_ERROR]: 'Failed to access extension storage',
   [ErrorCode.ENCRYPTION_ERROR]: 'Failed to encrypt/decrypt data',
+
+  [ErrorCode.FOLDER_NOT_FOUND]: 'Folder not found or not accessible',
+  [ErrorCode.FOLDER_EXPORT_FAILED]: 'Failed to export folder from Mapy.cz',
+  [ErrorCode.FOLDER_EMPTY]: 'This folder contains no routes',
+  [ErrorCode.FOLDER_MULTIPLE_ROUTES]: 'This folder contains multiple routes. Please sync individual routes instead.',
 
   [ErrorCode.URL_VALIDATION]: 'Invalid or unsafe URL',
 
