@@ -1,5 +1,29 @@
 # Routomil Changelog
 
+## 2026-02-17 - Fix: Auto-trigger re-login when Garmin session expires during sync
+
+### Summary
+When a Garmin session expires and the user clicks Sync, the popup now automatically clears stale auth state and opens the Garmin login tab — instead of showing an error and leaving the user stuck.
+
+### Root cause
+`AUTH_SESSION_EXPIRED` error code was dropped during propagation: the service worker only passed `error.message` (a string) back to the popup, with no way to distinguish session expiry from other errors.
+
+### Changes
+- **Added** optional `errorCode?: string` field to `BackgroundResponse` so error codes survive the full round-trip
+- **Updated** `handleSyncRouteFromUrl` and `handleSyncFolderGpx` catch blocks to include `errorCode` in the response
+- **Updated** top-level `onMessage` catch handler to include `errorCode`
+- **Updated** `handleSyncFromPopup` and `handleSyncFolderFromPopup` to forward `errorCode` to the popup
+- **Updated** `handleSyncRoute` and `handleSyncFolder` in popup: on `AUTH_SESSION_EXPIRED`, call `handleLogout()` then `handleLogin()` automatically
+
+### Files Modified
+- `src/shared/messages.ts` — added `errorCode` to `BackgroundResponse`
+- `src/background/service-worker.ts` — include error code in sync and top-level catch responses
+- `src/content/mapy-content.ts` — forward `errorCode` from sync response to popup
+- `src/popup/popup.ts` — detect `AUTH_SESSION_EXPIRED` and auto-trigger re-login
+
+### Impact
+- Seamless session recovery: session expired → login tab opens automatically, no manual logout/login required
+
 ## 2026-02-17 - Refactor: Remove Settings Section from Popup UI
 
 ### Summary

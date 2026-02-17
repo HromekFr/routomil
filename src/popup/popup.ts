@@ -325,6 +325,9 @@ async function handleSyncRoute(): Promise<void> {
     if (response?.success) {
       showSyncSuccess(response.courseUrl);
       await loadSyncHistory();
+    } else if (response?.errorCode === 'AUTH_SESSION_EXPIRED') {
+      await handleLogout();
+      await handleLogin();
     } else {
       showSyncError(response?.error || 'Failed to sync route');
     }
@@ -365,6 +368,9 @@ async function handleSyncFolder(): Promise<void> {
       }
       showSyncSuccess(response.courseUrl);
       await loadSyncHistory();
+    } else if (response?.errorCode === 'AUTH_SESSION_EXPIRED') {
+      await handleLogout();
+      await handleLogin();
     } else {
       showSyncError(response?.error || 'Failed to sync folder');
     }

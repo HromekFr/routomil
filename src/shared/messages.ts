@@ -30,6 +30,7 @@ export interface BackgroundResponse {
   success: boolean;
   data?: unknown;
   error?: string;
+  errorCode?: string;
 }
 
 export interface AuthStatus {

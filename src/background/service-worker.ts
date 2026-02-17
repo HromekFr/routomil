@@ -33,6 +33,7 @@ chrome.runtime.onMessage.addListener(
         sendResponse({
           success: false,
           error: error instanceof MapyGarminError ? error.message : 'Unknown error',
+          errorCode: error instanceof MapyGarminError ? error.code : undefined,
         });
       });
 
@@ -168,7 +169,11 @@ async function handleSyncRouteFromUrl(
     // Notify any open tabs about failure
     notifyTabs({ type: 'SYNC_STATUS', status: 'error', message: errorMessage });
 
-    return { success: false, error: errorMessage };
+    return {
+      success: false,
+      error: errorMessage,
+      errorCode: error instanceof MapyGarminError ? error.code : undefined,
+    };
   }
 }
 
@@ -245,7 +250,11 @@ async function handleSyncFolderGpx(
 
     notifyTabs({ type: 'SYNC_STATUS', status: 'error', message: errorMessage });
 
-    return { success: false, error: errorMessage };
+    return {
+      success: false,
+      error: errorMessage,
+      errorCode: error instanceof MapyGarminError ? error.code : undefined,
+    };
   }
 }
 

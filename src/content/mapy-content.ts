@@ -12,7 +12,7 @@ function initialize(): void {
   console.log('Mapy.cz → Garmin Sync: Content script loaded');
 }
 
-async function handleSyncFromPopup(activityType: ActivityType): Promise<{ success: boolean; error?: string; courseUrl?: string }> {
+async function handleSyncFromPopup(activityType: ActivityType): Promise<{ success: boolean; error?: string; errorCode?: string; courseUrl?: string }> {
   console.log('Mapy.cz → Garmin Sync: Starting sync from popup as', activityType);
 
   try {
@@ -50,7 +50,7 @@ async function handleSyncFromPopup(activityType: ActivityType): Promise<{ succes
       const data = syncResponse.data as { courseUrl?: string };
       return { success: true, courseUrl: data?.courseUrl };
     } else {
-      return { success: false, error: syncResponse.error || 'Sync failed' };
+      return { success: false, error: syncResponse.error || 'Sync failed', errorCode: syncResponse.errorCode };
     }
   } catch (error) {
     console.error('Mapy.cz → Garmin Sync: Error during sync', error);
@@ -58,7 +58,7 @@ async function handleSyncFromPopup(activityType: ActivityType): Promise<{ succes
   }
 }
 
-async function handleSyncFolderFromPopup(activityType: ActivityType): Promise<{ success: boolean; error?: string; courseUrl?: string; waypointCount?: number }> {
+async function handleSyncFolderFromPopup(activityType: ActivityType): Promise<{ success: boolean; error?: string; errorCode?: string; courseUrl?: string; waypointCount?: number }> {
   console.log('Mapy.cz → Garmin Sync: Starting folder sync from popup as', activityType);
 
   try {
@@ -97,7 +97,7 @@ async function handleSyncFolderFromPopup(activityType: ActivityType): Promise<{ 
       const data = syncResponse.data as { courseUrl?: string };
       return { success: true, courseUrl: data?.courseUrl, waypointCount: gpxInfo.waypointCount };
     } else {
-      return { success: false, error: syncResponse.error || 'Folder sync failed' };
+      return { success: false, error: syncResponse.error || 'Folder sync failed', errorCode: syncResponse.errorCode };
     }
   } catch (error) {
     console.error('Mapy.cz → Garmin Sync: Error during folder sync', error);
