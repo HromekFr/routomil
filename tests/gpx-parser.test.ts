@@ -170,7 +170,7 @@ describe('GPX to Garmin Course Conversion', () => {
       const route = createTestRoute();
       const course = convertGpxToGarminCourse(route, 'hiking');
 
-      expect(course.activityTypePk).toBe(17);
+      expect(course.activityTypePk).toBe(3);
     });
 
     it('should calculate elevation gain correctly', () => {

@@ -1,5 +1,24 @@
 # Routomil Changelog
 
+## 2026-02-17 - Fix: Critical Hiking Activity Type and GeoPoint Timestamp
+
+### Summary
+Fixed two bugs in the Garmin Course JSON payload that caused hiking-synced courses to break Garmin Connect's UI (entire account failing to load). Root cause was an unverified `activityTypePk` value for hiking that Garmin's API accepted but its frontend could not render.
+
+### Changes
+- **`activityTypePk` for hiking corrected from `17` → `3`** — verified against a real Garmin Connect network trace of a hiking course creation. Value `17` was guessed and never validated; Garmin accepted the upload but its course-list renderer crashed on an unknown type, making the account appear broken.
+- **First `geoPoint.timestamp` changed from `0` → `null`** — real Garmin requests use `null` for all geoPoint timestamps (including the first); `0` was a leftover assumption from the original reference implementation.
+
+### Files Modified
+- `src/lib/gpx-parser.ts` — `getActivityTypePk`: hiking value `17` → `3`; `geoPoints` loop: `timestamp: i === 0 ? 0 : null` → `timestamp: null`
+- `tests/gpx-parser.test.ts` — updated hiking activity type assertion from `17` to `3`
+
+### Impact
+- **Critical fix**: hiking routes will no longer produce an account-breaking course in Garmin Connect
+- Cycling routes unaffected (`activityTypePk: 10` unchanged)
+
+---
+
 ## 2026-02-17 - Chore: Remove Dead "Show Sync Notifications" Setting
 
 ### Summary
