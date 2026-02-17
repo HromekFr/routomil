@@ -210,32 +210,6 @@ body {
   margin-bottom: 8px;
 }
 
-/* Settings */
-.setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 0;
-}
-
-.setting-row label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.setting-row select {
-  padding: 6px 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 13px;
-}
-
-.setting-row input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-}
-
 /* History */
 .history-list {
   max-height: 180px;

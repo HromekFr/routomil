@@ -19,7 +19,6 @@ const userName = document.getElementById('user-name')!;
 const userAvatarImg = document.getElementById('user-avatar-img') as HTMLImageElement;
 const userAvatarFallback = document.getElementById('user-avatar-fallback')!;
 const logoutBtn = document.getElementById('logout-btn')!;
-const defaultActivitySelect = document.getElementById('default-activity') as HTMLSelectElement;
 const syncHistoryContainer = document.getElementById('sync-history')!;
 const routeStatus = document.getElementById('route-status')!;
 const syncControls = document.getElementById('sync-controls')!;
@@ -73,8 +72,6 @@ function setupEventListeners(): void {
   // Sync folder button
   syncFolderBtn.addEventListener('click', handleSyncFolder);
 
-  // Settings changes
-  defaultActivitySelect.addEventListener('change', saveSettings);
 }
 
 function showLoginView(): void {
@@ -181,19 +178,9 @@ async function loadSettings(): Promise<void> {
   const response = await sendMessage({ type: 'GET_SETTINGS' });
   if (response.success && response.data) {
     const settings = response.data as ExtensionSettings;
-    defaultActivitySelect.value = settings.defaultActivityType;
     syncActivityType.value = settings.defaultActivityType;
     folderActivityType.value = settings.defaultActivityType;
   }
-}
-
-async function saveSettings(): Promise<void> {
-  await sendMessage({
-    type: 'SET_SETTINGS',
-    settings: {
-      defaultActivityType: defaultActivitySelect.value as 'cycling' | 'hiking',
-    },
-  });
 }
 
 async function loadSyncHistory(): Promise<void> {
