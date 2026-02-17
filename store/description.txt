@@ -1,0 +1,52 @@
+Sync your planned routes from Mapy.cz directly to Garmin Connect as courses — one click, no manual exports.
+
+
+Routomil bridges Mapy.cz and Garmin Connect so you can plan routes in your favorite Czech map app and ride or hike them with your Garmin device — without any manual downloading, converting, or uploading.
+
+
+HOW IT WORKS
+1. Plan a route on Mapy.cz
+2. Open the Routomil popup
+3. Select activity type (Cycling or Hiking)
+4. Click "Sync to Garmin"
+Your route appears in Garmin Connect, ready to send to your device.
+
+
+KEY FEATURES
+
+One-Click Sync
+Transfers your Mapy.cz route to Garmin Connect as a course in seconds. No exports, no file management.
+
+Folder Sync
+Sync an entire Mapy.cz folder at once — all routes uploaded as individual courses in a single operation.
+
+Elevation & Waypoints
+Preserves elevation data and course points from your route, so your Garmin device shows accurate climb profiles.
+
+Secure Garmin Login
+Signs you in through the standard Garmin Connect browser flow, including full MFA/2FA support. Your password is never stored — only an encrypted session token is kept locally.
+
+Activity Type Selection
+Choose Cycling or Hiking per sync, or set a default in settings.
+
+Sync History
+The popup keeps a log of your recent syncs with direct links to each course in Garmin Connect.
+
+
+PRIVACY & SECURITY
+- No tracking, no analytics, no ads
+- Session tokens encrypted with AES-GCM in local storage
+- All communication over HTTPS
+- CSRF protection on every Garmin API request
+- Data never leaves your browser except to connect.garmin.com and mapy.cz
+- Sensitive data cleared on logout
+
+
+REQUIREMENTS
+- A Mapy.cz account with saved routes
+- A Garmin Connect account
+- Google Chrome (Manifest V3)
+
+
+OPEN SOURCE
+Source code available on GitHub: github.com/HromekFr/routomil

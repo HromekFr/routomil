@@ -1,0 +1,24 @@
+Chrome Web Store - Permission Justifications
+============================================
+
+storage
+-------
+Used to store the user's encrypted Garmin session token (AES-GCM 256-bit), sync history (last 50 synced routes), and extension settings. All sensitive data (session cookies, username) is encrypted before being written to local storage. Nothing is synced to the cloud or sent to any third party.
+
+cookies
+-------
+Required to detect a successful Garmin Connect login and capture session cookies after the user authenticates in a browser tab (supports MFA). Cookies are read only from the .garmin.com domain, used solely to authenticate API requests to Garmin Connect. On logout, all Garmin cookies are removed.
+
+Host permissions
+----------------
+- https://mapy.cz/*, https://en.mapy.cz/*, https://mapy.com/* — Content script runs on these pages to detect route pages, inject a "Sync to Garmin" button, and extract GPX route data via the Mapy.cz export API.
+- https://sso.garmin.com/* — Needed to monitor Garmin's SSO login flow and detect when authentication completes.
+- https://connect.garmin.com/* — Needed to fetch the CSRF token from the Garmin Connect dashboard and upload routes via the Garmin Course API.
+
+Remote code
+-----------
+No. The extension uses only bundled code (Manifest V3, script-src 'self'), with no eval, remote scripts, or dynamically fetched code.
+
+Single purpose
+--------------
+Routomil syncs planned routes from Mapy.cz to Garmin Connect as courses with a single click — without any manual downloading, file conversion, or uploading.
