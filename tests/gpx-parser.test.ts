@@ -159,6 +159,16 @@ describe('GPX to Garmin Course Conversion', () => {
       expect(course.geoPoints[2].distance).toBeGreaterThan(course.geoPoints[1].distance);
     });
 
+    it('should set timestamp to null for all geoPoints including the first', () => {
+      const route = createTestRoute();
+      const course = convertGpxToGarminCourse(route);
+
+      expect(course.geoPoints.length).toBeGreaterThan(0);
+      course.geoPoints.forEach((point, i) => {
+        expect(point.timestamp).toBeNull(); // was 0 for i===0 before fix
+      });
+    });
+
     it('should set correct activity type for cycling', () => {
       const route = createTestRoute();
       const course = convertGpxToGarminCourse(route, 'cycling');
