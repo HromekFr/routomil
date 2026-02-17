@@ -1,5 +1,26 @@
 # Routomil Changelog
 
+## 2026-02-17 - Chore: Remove Dead "Show Sync Notifications" Setting
+
+### Summary
+Removed the non-functional "Show sync notifications" checkbox from the Settings UI. The setting was persisted and rendered but never read by the sync logic, making it misleading to users.
+
+### Changes
+- Removed checkbox element from Settings section in popup HTML
+- Removed `showNotificationsCheckbox` DOM reference, event listener, `loadSettings` read, and `saveSettings` write from popup TypeScript
+- Removed `showSyncNotifications` field from `ExtensionSettings` interface and `DEFAULT_SETTINGS` in `messages.ts`
+
+### Files Modified
+- `src/popup/popup.html` — removed `show-notifications` setting row
+- `src/popup/popup.ts` — removed all references to `showNotificationsCheckbox`
+- `src/shared/messages.ts` — removed `showSyncNotifications` from interface and defaults
+
+### Impact
+- No functional change to sync behavior; existing stored values for this key are silently ignored
+- Cleaner settings UI with no dead controls
+
+---
+
 ## 2026-02-17 - Chore: Public Release Preparation
 
 ### Summary

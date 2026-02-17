@@ -20,7 +20,6 @@ const userAvatarImg = document.getElementById('user-avatar-img') as HTMLImageEle
 const userAvatarFallback = document.getElementById('user-avatar-fallback')!;
 const logoutBtn = document.getElementById('logout-btn')!;
 const defaultActivitySelect = document.getElementById('default-activity') as HTMLSelectElement;
-const showNotificationsCheckbox = document.getElementById('show-notifications') as HTMLInputElement;
 const syncHistoryContainer = document.getElementById('sync-history')!;
 const routeStatus = document.getElementById('route-status')!;
 const syncControls = document.getElementById('sync-controls')!;
@@ -71,7 +70,6 @@ function setupEventListeners(): void {
 
   // Settings changes
   defaultActivitySelect.addEventListener('change', saveSettings);
-  showNotificationsCheckbox.addEventListener('change', saveSettings);
 }
 
 function showLoginView(): void {
@@ -170,7 +168,6 @@ async function loadSettings(): Promise<void> {
     defaultActivitySelect.value = settings.defaultActivityType;
     syncActivityType.value = settings.defaultActivityType;
     folderActivityType.value = settings.defaultActivityType;
-    showNotificationsCheckbox.checked = settings.showSyncNotifications;
   }
 }
 
@@ -179,7 +176,6 @@ async function saveSettings(): Promise<void> {
     type: 'SET_SETTINGS',
     settings: {
       defaultActivityType: defaultActivitySelect.value as 'cycling' | 'hiking',
-      showSyncNotifications: showNotificationsCheckbox.checked,
     },
   });
 }
