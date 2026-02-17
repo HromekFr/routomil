@@ -7,9 +7,7 @@ export function extractRouteName(): string | null {
     'input[placeholder*="name" i], input[placeholder*="název" i], input[name*="name" i]'
   ) as HTMLInputElement;
   if (nameInput?.value?.trim()) {
-    const name = nameInput.value.replace(/\s+/g, ' ').trim();
-    console.log('Route name from input:', name);
-    return name;
+    return nameInput.value.replace(/\s+/g, ' ').trim();
   }
 
   // Strategy 2: Try various selectors for route name
@@ -26,9 +24,6 @@ export function extractRouteName(): string | null {
     const element = document.querySelector(selector);
     if (!element) continue;
 
-    // Debug: show raw innerHTML so we can see the DOM structure
-    console.log('[RouteExtractor] Selector', selector, '| innerHTML:', element.innerHTML, '| textContent:', JSON.stringify(element.textContent));
-
     // Extract text from each direct child node separately, then join with spaces.
     // This handles adjacent inline elements like <span>8:13 h</span><span>128.1 km</span>
     // where textContent would produce "8:13 h128.1 km" with no space.
@@ -40,7 +35,6 @@ export function extractRouteName(): string | null {
     const text = childTexts.join(' ').replace(/\s+/g, ' ').trim();
 
     if (text && text.length > 0 && text.length < 100) {
-      console.log('[RouteExtractor] Route name from selector', selector, ':', text);
       return text;
     }
   }
@@ -48,9 +42,7 @@ export function extractRouteName(): string | null {
   // Strategy 3: Extract from URL query parameters
   const urlMatch = window.location.href.match(/[?&]q=([^&]+)/);
   if (urlMatch) {
-    const decodedName = decodeURIComponent(urlMatch[1]);
-    console.log('Route name from URL query:', decodedName);
-    return decodedName;
+    return decodeURIComponent(urlMatch[1]);
   }
 
   // Strategy 4: Check URL for route ID
@@ -60,7 +52,5 @@ export function extractRouteName(): string | null {
   }
 
   // Fallback: Use today's date
-  const fallbackName = `Mapy.cz Route ${new Date().toLocaleDateString()}`;
-  console.log('Using fallback route name:', fallbackName);
-  return fallbackName;
+  return `Mapy.cz Route ${new Date().toLocaleDateString()}`;
 }
