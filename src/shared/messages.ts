@@ -21,6 +21,7 @@ export type BackgroundMessage =
   | { type: 'CHECK_AUTH' }
   | { type: 'SYNC_ROUTE_FROM_URL'; routeParams: MapyRouteParams; routeName: string; activityType: ActivityType }
   | { type: 'SYNC_FOLDER_GPX'; gpxContent: string; folderName: string; activityType: ActivityType }
+  | { type: 'SYNC_ROUTE_GPX'; gpxContent: string; routeName: string; activityType: ActivityType }
   | { type: 'GET_SYNC_HISTORY' }
   | { type: 'GET_SETTINGS' }
   | { type: 'SET_SETTINGS'; settings: Partial<ExtensionSettings> }

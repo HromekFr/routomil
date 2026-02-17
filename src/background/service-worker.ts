@@ -59,6 +59,9 @@ async function handleMessage(message: BackgroundMessage): Promise<BackgroundResp
     case 'SYNC_FOLDER_GPX':
       return handleSyncFolderGpx(message.gpxContent, message.folderName, message.activityType);
 
+    case 'SYNC_ROUTE_GPX':
+      return handleSyncRouteGpx(message.gpxContent, message.routeName, message.activityType);
+
     case 'GET_SYNC_HISTORY':
       return handleGetSyncHistory();
 
@@ -244,6 +247,85 @@ async function handleSyncFolderGpx(
           : 'Unknown error';
 
     console.error('Folder sync failed:', errorMessage);
+
+    entry.errorMessage = errorMessage;
+    await addSyncHistoryEntry(entry);
+
+    notifyTabs({ type: 'SYNC_STATUS', status: 'error', message: errorMessage });
+
+    return {
+      success: false,
+      error: errorMessage,
+      errorCode: error instanceof MapyGarminError ? error.code : undefined,
+    };
+  }
+}
+
+async function handleSyncRouteGpx(
+  gpxContent: string,
+  routeName: string,
+  activityType: ActivityType
+): Promise<BackgroundResponse> {
+  const entryId = crypto.randomUUID();
+  const entry: SyncHistoryEntry = {
+    id: entryId,
+    routeName,
+    activityType,
+    syncedAt: Date.now(),
+    success: false,
+  };
+
+  try {
+    console.log('Starting route sync from intercepted GPX content');
+
+    // Parse GPX
+    const gpxRoute = parseGpx(gpxContent);
+
+    if (gpxRoute.points.length === 0) {
+      throw new MapyGarminError('Route has no points', ErrorCode.GPX_PARSE_ERROR);
+    }
+
+    console.log(`Parsed route: ${gpxRoute.points.length} points, ${gpxRoute.totalDistance.toFixed(0)}m`);
+
+    // Override generic GPX name with the route name extracted from the page
+    if (gpxRoute.name === 'Unnamed Route') {
+      gpxRoute.name = routeName;
+    }
+
+    // Get CSRF token
+    const csrfToken = await getCsrfToken();
+
+    // Convert to Garmin Course
+    const courseData = convertGpxToGarminCourse(gpxRoute, activityType);
+
+    // Upload to Garmin
+    const { courseId } = await uploadCourse(courseData, csrfToken);
+
+    // Success
+    entry.success = true;
+    entry.garminCourseId = courseId;
+    await addSyncHistoryEntry(entry);
+
+    notifyTabs({ type: 'SYNC_STATUS', status: 'success', message: getCourseUrl(courseId) });
+
+    console.log('Route sync from GPX completed successfully:', courseId);
+
+    return {
+      success: true,
+      data: {
+        courseId,
+        courseUrl: getCourseUrl(courseId),
+      },
+    };
+  } catch (error) {
+    const errorMessage =
+      error instanceof MapyGarminError
+        ? error.message
+        : error instanceof Error
+          ? error.message
+          : 'Unknown error';
+
+    console.error('Route sync from GPX failed:', errorMessage);
 
     entry.errorMessage = errorMessage;
     await addSyncHistoryEntry(entry);

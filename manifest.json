@@ -30,6 +30,18 @@
         "https://mapy.com/*"
       ],
       "js": [
+        "fetch-interceptor.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://mapy.cz/*",
+        "https://en.mapy.cz/*",
+        "https://mapy.com/*"
+      ],
+      "js": [
         "mapy-content.js"
       ],
       "css": [

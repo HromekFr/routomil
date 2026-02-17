@@ -101,6 +101,7 @@ Use minimal TDD approach for major implementation changes:
 - `tests/integration/test-course-api.js` - Reference implementation and standalone API test (includes cookie setup instructions)
 - `tests/integration/test-mapy-export-api.js` - Mapy.cz export API reference implementation and validation
 - `docs/SECURITY_ANALYSIS.md` - Complete guide for CodeQL security analysis
+- `docs/MAPYCZ_INTERNALS.md` - Reverse-engineered Mapy.cz JS globals (`SMap.Coords`, `tplannerexport` API, coordinate encoding)
 - [Chrome Extension API](https://developer.chrome.com/docs/extensions/reference/)
 - [Garmin Connect](https://connect.garmin.com)
 - [Mapy.cz](https://mapy.cz)
