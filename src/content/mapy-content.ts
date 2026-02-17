@@ -232,20 +232,10 @@ chrome.runtime.onMessage.addListener((message: { type: string; activityType?: Ac
     });
     return true;
   } else if (message.type === 'EXTRACT_AND_SYNC') {
-    // Extract and sync the route.
-    // If the URL lacks a `rwp` parameter (coordinate-type waypoints with delta-encoded rc),
-    // use the MAIN world fetch interceptor. Otherwise, use the fast URL-parsing path.
+    // Always use the SMap decode path: SMap.Coords.stringToCoords handles both absolute
+    // and delta-encoded rc correctly for all route types (named, coordinate, or mixed).
     const activityType = message.activityType || 'cycling';
-    const currentUrl = window.location.href;
-    const hasRwp = (() => {
-      try { return new URL(currentUrl).searchParams.has('rwp'); } catch { return false; }
-    })();
-
-    if (hasRwp) {
-      handleSyncFromPopup(activityType).then(result => { sendResponse(result); });
-    } else {
-      handleSyncViaIntercept(activityType).then(result => { sendResponse(result); });
-    }
+    handleSyncViaIntercept(activityType).then(result => { sendResponse(result); });
     return true;
   } else if (message.type === 'EXTRACT_AND_SYNC_FOLDER') {
     // Extract and sync the folder

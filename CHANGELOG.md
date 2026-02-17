@@ -1,5 +1,24 @@
 # Routomil Changelog
 
+## 2026-02-17 - Fix: Coordinate-only routes failing with HTTP 500 (missing rp_aw + wrong detection)
+
+### Summary
+Routes where all waypoints are coordinate pins (coordinate → coordinate) failed with HTTP 500. Two bugs: (1) `rwp` was forwarded to the export API as-is but the `rp_aw` parameter was never set; (2) the detection logic used `rwp` presence to choose between URL-parsing and SMap-decode paths — but coordinate-only routes have BOTH `rwp` AND a delta-encoded `rc`, so the URL-parsing path was incorrectly chosen and sent raw delta chunks as `rg`.
+
+### Changes
+- **Fixed** `src/content/fetch-interceptor.ts` — forward `rwp` as `rp_aw` to `tplannerexport`
+- **Fixed** `src/content/mapy-content.ts` — always use SMap decode path; removed the incorrect `hasRwp` detection heuristic (`SMap.Coords.stringToCoords` handles all encoding cases correctly)
+- **Updated** `docs/MAPYCZ_INTERNALS.md` — documented `rwp`/`rp_aw` behaviour and the "rwp ≠ delta-free rc" insight
+
+### Files Modified
+- `src/content/fetch-interceptor.ts` — add `rp_aw` from `rwp`
+- `src/content/mapy-content.ts` — always use `handleSyncViaIntercept`
+- `docs/MAPYCZ_INTERNALS.md` — document `rwp`/`rp_aw` and detection pitfall
+
+### Impact
+- Coordinate → coordinate routes now sync correctly
+- All route types (named-only, coordinate-only, mixed) go through the same SMap decode path
+
 ## 2026-02-17 - Fix: Route sync for coordinate-type waypoints via GPX interception
 
 ### Summary
