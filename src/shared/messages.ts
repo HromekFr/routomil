@@ -43,7 +43,6 @@ export interface AuthStatus {
 export interface ExtensionSettings {
   defaultActivityType: ActivityType;
   autoDetectActivityType: boolean;
-  showSyncNotifications: boolean;
 }
 
 // Content script messages
@@ -62,7 +61,6 @@ export type TabMessage =
 export const DEFAULT_SETTINGS: ExtensionSettings = {
   defaultActivityType: 'cycling',
   autoDetectActivityType: true,
-  showSyncNotifications: true,
 };
 
 // Garmin Course API types
