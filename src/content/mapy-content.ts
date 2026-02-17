@@ -2,6 +2,8 @@
 
 import './mapy-content.css';
 import { extractRouteName } from './route-extractor';
+import { detectFolder } from './folder-detector';
+import { fetchGpxFromFolder, validateFolderGpx } from '../lib/mapy-folder-api';
 import { parseMapyUrl, hasRouteParams } from '../lib/mapy-url-parser';
 import { ActivityType, BackgroundResponse } from '../shared/messages';
 
@@ -56,6 +58,53 @@ async function handleSyncFromPopup(activityType: ActivityType): Promise<{ succes
   }
 }
 
+async function handleSyncFolderFromPopup(activityType: ActivityType): Promise<{ success: boolean; error?: string; courseUrl?: string; waypointCount?: number }> {
+  console.log('Mapy.cz → Garmin Sync: Starting folder sync from popup as', activityType);
+
+  try {
+    // Check if user is authenticated
+    const authResponse = await sendMessage({ type: 'CHECK_AUTH' });
+    if (!authResponse.success || !(authResponse.data as { isAuthenticated: boolean })?.isAuthenticated) {
+      return { success: false, error: 'Please log in to Garmin Connect in the extension popup' };
+    }
+
+    const currentUrl = window.location.href;
+    const folderInfo = detectFolder(currentUrl);
+    if (!folderInfo) {
+      return { success: false, error: 'No folder found on current page. Open a Mapy.cz folder page first.' };
+    }
+
+    const { folderId, folderName } = folderInfo;
+    console.log(`Fetching folder ${folderId} from Mapy.cz`);
+
+    // Fetch GPX from folder API (content script has auth cookies)
+    const gpxContent = await fetchGpxFromFolder(folderId);
+
+    // Validate GPX (single route, not empty)
+    const gpxInfo = validateFolderGpx(gpxContent);
+
+    console.log(`Folder GPX: ${gpxInfo.waypointCount} waypoints`);
+
+    // Send GPX to service worker for parsing and upload
+    const syncResponse = await sendMessage({
+      type: 'SYNC_FOLDER_GPX',
+      gpxContent,
+      folderName: folderName || 'Mapy.cz Folder',
+      activityType,
+    });
+
+    if (syncResponse.success) {
+      const data = syncResponse.data as { courseUrl?: string };
+      return { success: true, courseUrl: data?.courseUrl, waypointCount: gpxInfo.waypointCount };
+    } else {
+      return { success: false, error: syncResponse.error || 'Folder sync failed' };
+    }
+  } catch (error) {
+    console.error('Mapy.cz → Garmin Sync: Error during folder sync', error);
+    return { success: false, error: error instanceof Error ? error.message : 'An error occurred during folder sync' };
+  }
+}
+
 function sendMessage(message: unknown): Promise<BackgroundResponse> {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(message, response => {
@@ -80,10 +129,27 @@ chrome.runtime.onMessage.addListener((message: { type: string; activityType?: Ac
       routeName: routeName
     });
     return true;
+  } else if (message.type === 'CHECK_FOLDER') {
+    // Check if this is a folder page
+    const currentUrl = window.location.href;
+    const folderInfo = detectFolder(currentUrl);
+    sendResponse({
+      hasFolder: folderInfo !== null,
+      folderId: folderInfo?.folderId || null,
+      folderName: folderInfo?.folderName || null,
+    });
+    return true;
   } else if (message.type === 'EXTRACT_AND_SYNC') {
     // Extract and sync the route
     const activityType = message.activityType || 'cycling';
     handleSyncFromPopup(activityType).then(result => {
+      sendResponse(result);
+    });
+    return true;
+  } else if (message.type === 'EXTRACT_AND_SYNC_FOLDER') {
+    // Extract and sync the folder
+    const activityType = message.activityType || 'cycling';
+    handleSyncFolderFromPopup(activityType).then(result => {
       sendResponse(result);
     });
     return true;
