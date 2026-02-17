@@ -50,6 +50,13 @@ export type ContentMessage =
   | { type: 'ROUTE_DETECTED'; routeName: string; hasGpx: boolean }
   | { type: 'SYNC_STATUS'; status: 'syncing' | 'success' | 'error'; message?: string };
 
+// Tab messages (popup → content script)
+export type TabMessage =
+  | { type: 'CHECK_ROUTE' }
+  | { type: 'CHECK_FOLDER' }
+  | { type: 'EXTRACT_AND_SYNC'; activityType: ActivityType }
+  | { type: 'EXTRACT_AND_SYNC_FOLDER'; activityType: ActivityType };
+
 // Default settings
 export const DEFAULT_SETTINGS: ExtensionSettings = {
   defaultActivityType: 'cycling',
@@ -78,9 +85,13 @@ export interface GarminCourseLine {
 
 export interface GarminCoursePoint {
   name: string;
-  type: number;
-  latitude: number;
-  longitude: number;
+  coursePointType: string;   // "GENERIC", "LEFT", "RIGHT", etc.
+  lat: number;               // was "latitude"
+  lon: number;               // was "longitude"
+  distance: number;          // metres from route start
+  elevation: number;
+  timestamp: null;
+  coursePointId: null;
 }
 
 export interface GarminBoundingBox {

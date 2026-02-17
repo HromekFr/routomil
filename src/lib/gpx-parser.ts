@@ -256,6 +256,7 @@ export function convertGpxToGarminCourse(
 
   // Calculate cumulative distances and create geoPoints
   let cumulativeDistance = 0;
+  const cumulativeDists: number[] = [];
   const geoPoints: GarminGeoPoint[] = [];
 
   for (let i = 0; i < route.points.length; i++) {
@@ -268,6 +269,7 @@ export function convertGpxToGarminCourse(
       cumulativeDistance += dist;
     }
 
+    cumulativeDists.push(cumulativeDistance);
     geoPoints.push({
       latitude: point.lat,
       longitude: point.lon,
@@ -326,12 +328,31 @@ export function convertGpxToGarminCourse(
   ];
 
   // Convert waypoints to course points
-  const coursePoints: GarminCoursePoint[] = route.waypoints.map((wp) => ({
-    name: wp.name,
-    type: 5, // Generic waypoint type
-    latitude: wp.lat,
-    longitude: wp.lon,
-  }));
+  const coursePoints: GarminCoursePoint[] = route.waypoints.map((wp) => {
+    // Find nearest track point for distance and elevation
+    let nearestIdx = 0;
+    let minDistSq = Infinity;
+    for (let i = 0; i < route.points.length; i++) {
+      const dLat = route.points[i].lat - wp.lat;
+      const dLon = route.points[i].lon - wp.lon;
+      const distSq = dLat * dLat + dLon * dLon;
+      if (distSq < minDistSq) {
+        minDistSq = distSq;
+        nearestIdx = i;
+      }
+    }
+    const nearestPoint = route.points[nearestIdx];
+    return {
+      name: wp.name.substring(0, 15), // Garmin limit: 15 chars max
+      coursePointType: 'GENERIC',
+      lat: wp.lat,
+      lon: wp.lon,
+      distance: cumulativeDists[nearestIdx],
+      elevation: nearestPoint.ele ?? wp.ele ?? 0,
+      timestamp: null,
+      coursePointId: null,
+    };
+  });
 
   // Get start point
   const firstPoint = route.points[0];

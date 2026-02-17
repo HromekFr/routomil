@@ -286,8 +286,13 @@ describe('GPX to Garmin Course Conversion', () => {
 
       expect(course.coursePoints).toHaveLength(2);
       expect(course.coursePoints[0].name).toBe('Turn Left');
-      expect(course.coursePoints[0].latitude).toBe(49.9365);
-      expect(course.coursePoints[0].type).toBe(5); // Generic waypoint
+      expect(course.coursePoints[0].coursePointType).toBe('GENERIC');
+      expect(course.coursePoints[0].lat).toBe(49.9365);
+      expect(course.coursePoints[0].lon).toBeDefined();
+      expect(course.coursePoints[0].distance).toBeGreaterThanOrEqual(0);
+      expect(course.coursePoints[0].elevation).toBeDefined();
+      expect(course.coursePoints[0].timestamp).toBeNull();
+      expect(course.coursePoints[0].coursePointId).toBeNull();
       expect(course.coursePoints[1].name).toBe('Water Station');
     });
 
