@@ -1,5 +1,27 @@
 # Routomil Changelog
 
+## 2026-02-17 - Fix: Profile Not Showing on Extension Re-add
+
+### Summary
+When the extension is removed and re-added in Chrome developer mode, `chrome.storage.local` is cleared but Garmin browser cookies persist. The extension correctly detected the existing session but displayed "Garmin User" with no avatar because the profile data was no longer in storage.
+
+### Root Cause
+`captureSession()` found valid cookies but called `getAuthToken()` (returns null, storage was cleared), so saved `username: 'Garmin User'` with no `displayName`/`profileImageUrl`. Profile was only re-fetched via `getCsrfToken()` during the first route sync.
+
+### Fix
+Added a `REFRESH_PROFILE` message type that triggers a background profile fetch when the popup opens and `displayName` is missing. The fetch runs non-blocking after the UI renders; on success it updates the avatar and name. On failure (network error, etc.), "Garmin User" stays — no crash.
+
+### Files Modified
+- `src/shared/messages.ts` — added `REFRESH_PROFILE` to `BackgroundMessage` union type
+- `src/background/service-worker.ts` — added `REFRESH_PROFILE` case + `handleRefreshProfile()` (calls `getCsrfToken()` to re-fetch and save profile, then returns updated `AuthStatus`)
+- `src/popup/popup.ts` — added `refreshProfile()` function; called non-blocking in `init()` when `!authStatus.displayName`
+- `CHANGELOG.md` — this entry
+
+### Impact
+- Profile picture and display name now appear immediately on popup open after extension re-add (1-3 second network delay)
+- No behaviour change for normal use (profile already in storage → `displayName` present → refresh skipped)
+- Non-fatal: if network fails, fallback "Garmin User" display is preserved
+
 ## 2026-02-17 - Chore: Public Release Preparation
 
 ### Summary
