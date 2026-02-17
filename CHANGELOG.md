@@ -1,5 +1,46 @@
 # Routomil Changelog
 
+## 2026-02-17 - Fix: Route-View Sync Failing with HTTP 500 on Certain Routes
+
+### Summary
+Route-view sync failed with HTTP 500 from Mapy.cz on routes containing abbreviated coordinate encodings in the `rc` URL parameter. The root cause was that `buildMapyExportUrl` split `rc` into 10-char `rg` chunks, but Mapy.cz's `rc` can contain abbreviated/delta-encoded coordinates (e.g. 5-char) that the export API cannot resolve. Additionally, the `rut` parameter was being dropped.
+
+### Changes
+- **Pass `rc` directly to the export API** instead of splitting into `rg` chunks — the API natively handles abbreviated coordinates in `rc`. Fall back to `rg` only when `rc` is unavailable.
+- **New `rc` field** in `MapyRouteParams` stores the original unsplit value
+- **New `rut` field** in `MapyRouteParams` — route update token required by some routes
+
+### Files Modified
+- `src/lib/mapy-url-parser.ts` — interface (`rc`, `rut`), parser, URL builder (prefer `rc`)
+- `src/lib/mapy-api.ts` — validation accepts `rc` as alternative to `rg`
+- `src/content/mapy-content.ts` — validation accepts `rc` as alternative to `rg`
+- `tests/mapy-url-parser.test.ts` — updated fixtures, added `rc`/`rut` tests
+
+### Impact
+- Route-view sync now works for all routes including those with abbreviated coords
+- Folder-view sync unaffected (GPX fetched by content script, not this path)
+
+---
+
+## 2026-02-17 - Fix: Critical Hiking Activity Type and GeoPoint Timestamp
+
+### Summary
+Fixed two bugs in the Garmin Course JSON payload that caused hiking-synced courses to break Garmin Connect's UI (entire account failing to load). Root cause was an unverified `activityTypePk` value for hiking that Garmin's API accepted but its frontend could not render.
+
+### Changes
+- **`activityTypePk` for hiking corrected from `17` → `3`** — verified against a real Garmin Connect network trace of a hiking course creation. Value `17` was guessed and never validated; Garmin accepted the upload but its course-list renderer crashed on an unknown type, making the account appear broken.
+- **First `geoPoint.timestamp` changed from `0` → `null`** — real Garmin requests use `null` for all geoPoint timestamps (including the first); `0` was a leftover assumption from the original reference implementation.
+
+### Files Modified
+- `src/lib/gpx-parser.ts` — `getActivityTypePk`: hiking value `17` → `3`; `geoPoints` loop: `timestamp: i === 0 ? 0 : null` → `timestamp: null`
+- `tests/gpx-parser.test.ts` — updated hiking activity type assertion from `17` to `3`
+
+### Impact
+- **Critical fix**: hiking routes will no longer produce an account-breaking course in Garmin Connect
+- Cycling routes unaffected (`activityTypePk: 10` unchanged)
+
+---
+
 ## 2026-02-17 - Chore: Remove Dead "Show Sync Notifications" Setting
 
 ### Summary

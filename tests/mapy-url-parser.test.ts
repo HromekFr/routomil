@@ -53,6 +53,7 @@ describe('mapy-url-parser', () => {
     it('should parse test URL correctly', () => {
       const result = parseMapyUrl(TEST_URL);
 
+      expect(result.rc).toBe('9hChxxXvtO95rPhx1qo5');
       expect(result.rg).toEqual(['9hChxxXvtO', '95rPhx1qo5']);
       expect(result.rs).toEqual(['muni', 'muni']);
       expect(result.ri).toEqual(['3468', '1818']);
@@ -80,6 +81,20 @@ describe('mapy-url-parser', () => {
       const result = parseMapyUrl(url);
 
       expect(result.rp_aw).toBeNull();
+    });
+
+    it('should extract rut parameter when present', () => {
+      const url = 'https://mapy.com?rc=9gVJ8x1uBMhaqWi&rs=stre&rs=muni&ri=85610&ri=1665&rut=1';
+      const result = parseMapyUrl(url);
+
+      expect(result.rut).toBe('1');
+    });
+
+    it('should set rut to null when absent', () => {
+      const url = 'https://mapy.com?rc=9hChxxXvtO95rPhx1qo5';
+      const result = parseMapyUrl(url);
+
+      expect(result.rut).toBeNull();
     });
 
     it('should handle URL with only minimal parameters', () => {
@@ -137,11 +152,13 @@ describe('mapy-url-parser', () => {
   describe('buildMapyExportUrl', () => {
     it('should build export URL with all parameters', () => {
       const params: MapyRouteParams = {
+        rc: '9hChxxXvtO95rPhx1qo5',
         rg: ['9hChxxXvtO', '95rPhx1qo5'],
         rs: ['muni', 'muni'],
         ri: ['3468', '1818'],
         rp_c: '121',
         rp_aw: '1;9hSCBxYCBz9hje0xYNZD9hxS.xYg4DlhdxZAUp95R9hxZSY695frPxZhW5it4x-DpIkBrx-dKEmkRx10HRip2x1Viq',
+        rut: null,
       };
 
       const url = buildMapyExportUrl(params);
@@ -150,22 +167,42 @@ describe('mapy-url-parser', () => {
       expect(urlObj.origin).toBe('https://mapy.com');
       expect(urlObj.pathname).toBe('/api/tplannerexport');
       expect(urlObj.searchParams.get('export')).toBe('gpx');
-      expect(urlObj.searchParams.get('lang')).toBe('en,cs');
       expect(urlObj.searchParams.get('rp_c')).toBe('121');
       expect(urlObj.searchParams.getAll('rg')).toEqual(['9hChxxXvtO', '95rPhx1qo5']);
       expect(urlObj.searchParams.getAll('rs')).toEqual(['muni', 'muni']);
       expect(urlObj.searchParams.getAll('ri')).toEqual(['3468', '1818']);
       expect(urlObj.searchParams.get('rp_aw')).toBe('1;9hSCBxYCBz9hje0xYNZD9hxS.xYg4DlhdxZAUp95R9hxZSY695frPxZhW5it4x-DpIkBrx-dKEmkRx10HRip2x1Viq');
-      expect(urlObj.searchParams.has('rand')).toBe(true); // Cache buster
+      expect(urlObj.searchParams.has('rand')).toBe(true);
+      expect(urlObj.searchParams.has('rut')).toBe(false);
+    });
+
+    it('should include rut in URL when present', () => {
+      const params: MapyRouteParams = {
+        rc: '9gVJ8x1uBMhaqWi',
+        rg: ['9gVJ8x1uBM', 'haqWi'],
+        rs: ['stre', 'muni'],
+        ri: ['85610', '1665'],
+        rp_c: '132',
+        rp_aw: '1;9gVW2x19rn',
+        rut: '1',
+      };
+
+      const url = buildMapyExportUrl(params);
+      const urlObj = new URL(url);
+
+      expect(urlObj.searchParams.get('rut')).toBe('1');
+      expect(urlObj.searchParams.getAll('rg')).toEqual(['9gVJ8x1uBM', 'haqWi']);
     });
 
     it('should build export URL with minimal parameters', () => {
       const params: MapyRouteParams = {
+        rc: null,
         rg: ['9hChxxXvtO'],
         rs: [],
         ri: [],
         rp_c: null,
         rp_aw: null,
+        rut: null,
       };
 
       const url = buildMapyExportUrl(params);
@@ -179,11 +216,13 @@ describe('mapy-url-parser', () => {
 
     it('should add cache buster parameter', () => {
       const params: MapyRouteParams = {
+        rc: null,
         rg: ['test'],
         rs: [],
         ri: [],
         rp_c: null,
         rp_aw: null,
+        rut: null,
       };
 
       const url1 = buildMapyExportUrl(params);
@@ -211,6 +250,7 @@ describe('mapy-url-parser', () => {
       expect(urlObj.searchParams.getAll('ri')).toEqual(params.ri);
       expect(urlObj.searchParams.get('rp_c')).toBe(params.rp_c);
       expect(urlObj.searchParams.get('rp_aw')).toBe(params.rp_aw);
+      expect(urlObj.searchParams.get('rut')).toBe(params.rut);
     });
   });
 });

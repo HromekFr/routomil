@@ -1,11 +1,13 @@
 // Mapy.cz URL parsing and route parameter extraction
 
 export interface MapyRouteParams {
-  rg: string[];         // rc split into 10-char chunks (coordinate data)
+  rc: string | null;    // original rc value from URL (may contain abbreviated coords)
+  rg: string[];         // rc split into 10-char chunks (fallback when rc unavailable)
   rs: string[];         // stop types (e.g., 'muni', 'ward')
   ri: string[];         // stop IDs
   rp_c: string | null;  // route profile from mrp.c (e.g., '121' for cycling)
   rp_aw: string | null; // route waypoints (rwp → rp_aw mapping)
+  rut: string | null;   // route update token (required by some routes)
 }
 
 /**
@@ -35,10 +37,12 @@ export function parseMapyUrl(urlString: string): MapyRouteParams {
   const rwp = params.get('rwp');
 
   const result: MapyRouteParams = {
-    rg: rc ? splitRcToRg(rc) : [],     // Split rc into 10-char chunks
+    rc,                                // Original rc (may contain abbreviated coords)
+    rg: rc ? splitRcToRg(rc) : [],     // Split rc into 10-char chunks (fallback)
     rs: params.getAll('rs'),           // Stop types
     ri: params.getAll('ri'),           // Stop IDs
     rp_aw: rwp,                        // Route waypoints (rwp → rp_aw)
+    rut: params.get('rut'),            // Route update token (present on some routes)
     rp_c: null,
   };
 
@@ -118,6 +122,11 @@ export function buildMapyExportUrl(params: MapyRouteParams): string {
   // Route waypoints (rp_aw)
   if (params.rp_aw) {
     url.searchParams.set('rp_aw', params.rp_aw);
+  }
+
+  // Route update token (required by some routes)
+  if (params.rut) {
+    url.searchParams.set('rut', params.rut);
   }
 
   // Add cache buster to avoid cached responses

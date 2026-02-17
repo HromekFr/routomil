@@ -29,7 +29,7 @@ async function handleSyncFromPopup(activityType: ActivityType): Promise<{ succes
     }
 
     const routeParams = parseMapyUrl(currentUrl);
-    if (routeParams.rg.length === 0) {
+    if (!routeParams.rc && routeParams.rg.length === 0) {
       return { success: false, error: 'Could not extract route coordinates from URL' };
     }
 

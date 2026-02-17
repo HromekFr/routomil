@@ -239,7 +239,7 @@ function toRad(deg: number): number {
  * Map activity type to Garmin activity type ID
  */
 function getActivityTypePk(activityType: ActivityType): number {
-  return activityType === 'hiking' ? 17 : 10; // 10 = cycling, 17 = hiking
+  return activityType === 'hiking' ? 3 : 10; // 10 = cycling, 3 = hiking (verified from Garmin Connect network trace)
 }
 
 /**
@@ -275,7 +275,7 @@ export function convertGpxToGarminCourse(
       longitude: point.lon,
       elevation: point.ele ?? 0,
       distance: cumulativeDistance,
-      timestamp: i === 0 ? 0 : null,
+      timestamp: null,
     });
   }
 
