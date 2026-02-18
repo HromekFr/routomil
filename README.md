@@ -1,4 +1,16 @@
-# Routomil
+<p align="center">
+  <img src="https://raw.githubusercontent.com/HromekFr/routomil/main/assets/routomil_banner.webp" alt="Routomil" width="500">
+</p>
+
+<p align="center">
+  <strong>Mapuj! Mapuj!</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/HromekFr/routomil/actions/workflows/ci.yml?branch=main"><img src="https://img.shields.io/github/actions/workflow/status/HromekFr/routomil/ci.yml?branch=main&style=for-the-badge" alt="Build status"></a>
+  <a href="https://github.com/HromekFr/routomil/releases"><img src="https://img.shields.io/github/v/release/HromekFr/routomil?include_prereleases&style=for-the-badge" alt="GitHub release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
+</p>
 
 **Routomil** is a Chrome extension that syncs planned routes from [Mapy.cz](https://mapy.cz) and [bikerouter.de](https://bikerouter.de) directly to [Garmin Connect](https://connect.garmin.com) as courses.
 

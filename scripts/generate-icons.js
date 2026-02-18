@@ -1,11 +1,8 @@
 #!/usr/bin/env node
-// Script to generate PNG icons from SVG
+// Script to generate PNG icons from source image (assets/routomil_icon_cropped.jpg)
 
 const fs = require('fs');
 const path = require('path');
-
-// This script requires 'sharp' to be installed: npm install sharp --save-dev
-// If sharp is not available, you can manually convert SVG to PNG using online tools
 
 async function generateIcons() {
   let sharp;
@@ -15,25 +12,27 @@ async function generateIcons() {
     console.log('Note: sharp is not installed. To auto-generate PNG icons:');
     console.log('  npm install sharp --save-dev');
     console.log('');
-    console.log('Alternatively, manually convert the SVG icons in assets/icons/ to PNG format.');
-    console.log('Required sizes: 16x16, 48x48, 128x128');
+    console.log('Alternatively, manually resize assets/routomil_icon_cropped.jpg');
+    console.log('and place PNG files in assets/icons/. Required sizes: 16x16, 48x48, 128x128');
     return;
   }
 
   const sizes = [16, 48, 128];
+  const sourceImage = path.join(__dirname, '..', 'assets', 'routomil_icon_cropped.jpg');
   const iconsDir = path.join(__dirname, '..', 'assets', 'icons');
 
-  for (const size of sizes) {
-    const svgPath = path.join(iconsDir, `icon${size}.svg`);
-    const pngPath = path.join(iconsDir, `icon${size}.png`);
+  if (!fs.existsSync(sourceImage)) {
+    console.error(`Source image not found: ${sourceImage}`);
+    process.exit(1);
+  }
 
-    if (fs.existsSync(svgPath)) {
-      await sharp(svgPath)
-        .resize(size, size)
-        .png()
-        .toFile(pngPath);
-      console.log(`Generated: icon${size}.png`);
-    }
+  for (const size of sizes) {
+    const pngPath = path.join(iconsDir, `icon${size}.png`);
+    await sharp(sourceImage)
+      .resize(size, size, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
+      .png()
+      .toFile(pngPath);
+    console.log(`Generated: icon${size}.png`);
   }
 
   console.log('Icon generation complete!');
