@@ -1,5 +1,18 @@
 # Routomil Changelog
 
+## 2026-02-18 - Cleanup: Remove dead button-injector.ts code
+
+### Summary
+Deleted `src/content/button-injector.ts` (240 lines) — artifact from earlier UI approach that was never imported or used. This eliminates 8 of 11 innerHTML security warnings from CodeQL scans.
+
+### Files Deleted
+- `src/content/button-injector.ts` — Dead code, no imports/references in source, webpack config, or manifest
+
+### Impact
+- CodeQL innerHTML errors: 11 → 3 (8 fewer false positives)
+- No runtime impact (file was never executed)
+- No test changes needed (file had no tests)
+
 ## 2026-02-18 - Security: Add CodeQL queries for postMessage and fetch patching
 
 ### Summary
