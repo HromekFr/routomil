@@ -88,6 +88,8 @@ check_item "$PROJECT_ROOT/codeql-custom-queries/queries/DomXss.ql" "file" true
 check_item "$PROJECT_ROOT/codeql-custom-queries/queries/WeakEncryption.ql" "file" true
 check_item "$PROJECT_ROOT/codeql-custom-queries/queries/CsrfTokenMishandling.ql" "file" true
 check_item "$PROJECT_ROOT/codeql-custom-queries/queries/SensitiveDataInErrors.ql" "file" true
+check_item "$PROJECT_ROOT/codeql-custom-queries/queries/PostMessageSecurity.ql" "file" true
+check_item "$PROJECT_ROOT/codeql-custom-queries/queries/FetchPatching.ql" "file" true
 echo ""
 
 # Check scripts

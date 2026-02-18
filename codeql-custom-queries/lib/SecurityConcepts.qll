@@ -176,3 +176,46 @@ predicate isCsrfTokenExtraction(Expr expr) {
     prop.getPropertyName().regexpMatch("(?i).*(csrf|xsrf).*")
   )
 }
+
+/**
+ * Predicate: Identifies postMessage() calls (window.postMessage or plain postMessage)
+ */
+predicate isPostMessageCall(CallExpr call) {
+  exists(PropAccess prop |
+    prop = call.getCallee() and
+    prop.getPropertyName() = "postMessage"
+  )
+  or
+  call.getCallee().(VarAccess).getName() = "postMessage"
+}
+
+/**
+ * Predicate: Identifies postMessage() calls with wildcard '*' target origin
+ */
+predicate isPostMessageWildcard(CallExpr call) {
+  isPostMessageCall(call) and
+  call.getNumArgument() >= 2 and
+  call.getArgument(1).(StringLiteral).getValue() = "*"
+}
+
+/**
+ * Predicate: Identifies addEventListener('message', ...) calls
+ */
+predicate isMessageEventListener(CallExpr call) {
+  exists(PropAccess prop |
+    prop = call.getCallee() and
+    prop.getPropertyName() = "addEventListener" and
+    call.getArgument(0).(StringLiteral).getValue() = "message"
+  )
+}
+
+/**
+ * Predicate: Identifies window.fetch monkey-patching (window.fetch = ...)
+ */
+predicate isFetchPatch(Assignment assign) {
+  exists(PropAccess prop |
+    prop = assign.getLhs() and
+    prop.getPropertyName() = "fetch" and
+    prop.getBase().(GlobalVarAccess).getName() = "window"
+  )
+}

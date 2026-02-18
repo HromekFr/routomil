@@ -60,6 +60,8 @@ echo "  - DomXss.ql (XSS vulnerability detection)"
 echo "  - WeakEncryption.ql (encryption issues)"
 echo "  - CsrfTokenMishandling.ql (CSRF token security)"
 echo "  - SensitiveDataInErrors.ql (error message leakage)"
+echo "  - PostMessageSecurity.ql (postMessage origin validation)"
+echo "  - FetchPatching.ql (fetch API patching detection)"
 echo ""
 
 "$CODEQL_BIN" database analyze "$DB_PATH" \
