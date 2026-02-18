@@ -7,7 +7,7 @@ const FOLDER_EXPORT_BASE_URL = 'https://mapy.com/api/mapybox-export/v1/folder/gp
 /**
  * Build folder export URL for Mapy.cz API
  */
-export function buildFolderExportUrl(folderId: string): string {
+function buildFolderExportUrl(folderId: string): string {
   const params = new URLSearchParams({
     id: folderId,
     export: 'gpx',
@@ -88,6 +88,7 @@ export async function fetchGpxFromFolder(folderId: string): Promise<string> {
   }
 }
 
+/** @public */
 export interface FolderGpxInfo {
   trackCount: number;
   waypointCount: number;

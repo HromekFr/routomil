@@ -1,5 +1,6 @@
 // Mapy.cz folder page detection and ID extraction
 
+/** @public */
 export interface FolderInfo {
   folderId: string;
   folderName: string | null;
@@ -12,7 +13,7 @@ export interface FolderInfo {
  * Example URL:
  *   https://mapy.com/en/turisticka?moje-mapy&l=1&cat=mista-trasy&mid=68933efd30d1fdb55139c439
  */
-export function isFolderPage(url: string): boolean {
+function isFolderPage(url: string): boolean {
   try {
     const parsed = new URL(url);
     const search = parsed.search + (parsed.hash.includes('?') ? '&' + parsed.hash.split('?')[1] : '');
@@ -29,7 +30,7 @@ export function isFolderPage(url: string): boolean {
  * Extract folder ID from a Mapy.cz folder URL.
  * Returns null if the ID cannot be found.
  */
-export function extractFolderId(url: string): string | null {
+function extractFolderId(url: string): string | null {
   try {
     // mid= can appear in query string or hash fragment
     const parsed = new URL(url);
@@ -53,7 +54,7 @@ export function extractFolderId(url: string): string | null {
  * Extract folder name from the page DOM.
  * Returns null if no name can be found.
  */
-export function extractFolderName(): string | null {
+function extractFolderName(): string | null {
   // Try common folder title selectors used by Mapy.cz
   const selectors = [
     '.my-maps-detail__name',

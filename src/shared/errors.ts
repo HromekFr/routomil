@@ -47,7 +47,7 @@ export enum ErrorCode {
   NETWORK_ERROR = 'NETWORK_ERROR',
 }
 
-export const ERROR_MESSAGES: Record<ErrorCode, string> = {
+const ERROR_MESSAGES: Record<ErrorCode, string> = {
   [ErrorCode.AUTH_INVALID_CREDENTIALS]: 'Invalid username or password',
   [ErrorCode.AUTH_SESSION_EXPIRED]: 'Session expired, please log in again',
   [ErrorCode.AUTH_NETWORK_ERROR]: 'Network error during authentication',
@@ -76,6 +76,3 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   [ErrorCode.NETWORK_ERROR]: 'Network connection error',
 };
 
-export function getErrorMessage(code: ErrorCode): string {
-  return ERROR_MESSAGES[code] || ERROR_MESSAGES[ErrorCode.UNKNOWN_ERROR];
-}
