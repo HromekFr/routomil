@@ -48,18 +48,6 @@ export interface ExtensionSettings {
   autoDetectActivityType: boolean;
 }
 
-// Content script messages
-export type ContentMessage =
-  | { type: 'ROUTE_DETECTED'; routeName: string; hasGpx: boolean }
-  | { type: 'SYNC_STATUS'; status: 'syncing' | 'success' | 'error'; message?: string };
-
-// Tab messages (popup → content script)
-export type TabMessage =
-  | { type: 'CHECK_ROUTE' }
-  | { type: 'CHECK_FOLDER' }
-  | { type: 'EXTRACT_AND_SYNC'; activityType: ActivityType; routeName?: string }
-  | { type: 'EXTRACT_AND_SYNC_FOLDER'; activityType: ActivityType; folderName?: string };
-
 // Default settings
 export const DEFAULT_SETTINGS: ExtensionSettings = {
   defaultActivityType: 'cycling',

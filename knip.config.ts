@@ -2,13 +2,6 @@ import type { KnipConfig } from 'knip';
 
 const config: KnipConfig = {
   entry: [
-    // Webpack entry points (from webpack.config.js)
-    'src/background/service-worker.ts',
-    'src/content/mapy-content.ts',
-    'src/content/fetch-interceptor.ts',
-    'src/content/bikerouter-interceptor.ts',
-    'src/content/bikerouter-content.ts',
-    'src/popup/popup.ts',
     // Test infrastructure
     'tests/**/*.{js,ts}',
     'scripts/**/*.js',

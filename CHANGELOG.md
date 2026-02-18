@@ -1,5 +1,27 @@
 # Routomil Changelog
 
+## 2026-02-18 - Cleanup: Remove dead code identified by Knip
+
+### Summary
+Addressed all Knip dead code findings: deleted unused files, removed unused devDependencies (`form-data`, `node-fetch`), un-exported internal-only helpers, removed unused types (`ContentMessage`, `TabMessage`) and the unused `getErrorMessage` function. Intentionally kept exports (`clearSyncHistory`, `FolderInfo`, `FolderGpxInfo`) marked with `/** @public */`. Knip config updated to remove redundant entry patterns (webpack plugin auto-detects them). `npm run deadcode` is now fully clean.
+
+### Files Deleted
+- `src/lib/test-exports.ts` — Re-export shim for tests; nothing imported it
+- `tests/e2e/extension-load.test.js` — Puppeteer e2e test; puppeteer not installed, not in use
+
+### Files Modified
+- `src/content/folder-detector.ts` — Un-exported `isFolderPage`, `extractFolderId`, `extractFolderName` (internal to `detectFolder`); added `/** @public */` on `FolderInfo`
+- `src/lib/mapy-folder-api.ts` — Un-exported `buildFolderExportUrl` (internal to `fetchGpxFromFolder`); added `/** @public */` on `FolderGpxInfo`
+- `src/shared/errors.ts` — Un-exported `ERROR_MESSAGES`; removed `getErrorMessage` function
+- `src/shared/messages.ts` — Removed unused `ContentMessage` and `TabMessage` types
+- `src/lib/storage.ts` — Added `/** @public */` on `clearSyncHistory`
+- `knip.config.ts` — Removed redundant webpack entry patterns (auto-detected by Knip webpack plugin)
+- `package.json` — Removed `form-data` and `node-fetch` devDependencies; removed `test:e2e` script
+
+### Impact
+- `npm run deadcode` reports zero findings
+- Build and all tests unaffected
+
 ## 2026-02-18 - Tooling: Integrate Knip dead code analysis
 
 ### Summary

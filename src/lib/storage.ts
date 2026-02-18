@@ -108,6 +108,7 @@ export async function addSyncHistoryEntry(entry: SyncHistoryEntry): Promise<void
   await chrome.storage.local.set({ [STORAGE_KEYS.SYNC_HISTORY]: trimmed });
 }
 
+/** @public */
 export async function clearSyncHistory(): Promise<void> {
   await chrome.storage.local.set({ [STORAGE_KEYS.SYNC_HISTORY]: [] });
 }
