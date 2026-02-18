@@ -1,5 +1,26 @@
 # Routomil Changelog
 
+## 2026-02-18 - Security: Add CodeQL queries for postMessage and fetch patching
+
+### Summary
+Added two new CodeQL security queries to cover patterns introduced by bikerouter.de and Mapy.cz fetch interception features. Extended the shared SecurityConcepts library with new predicates.
+
+### Files Created
+- `codeql-custom-queries/queries/PostMessageSecurity.ql` — Detects wildcard postMessage target origins (CWE-345) and message event listeners without origin validation
+- `codeql-custom-queries/queries/FetchPatching.ql` — Detects window.fetch monkey-patching (CWE-693) as a conscious review checkpoint
+
+### Files Modified
+- `codeql-custom-queries/lib/SecurityConcepts.qll` — Added predicates: `isPostMessageCall`, `isPostMessageWildcard`, `isMessageEventListener`, `isFetchPatch`
+- `scripts/run-codeql-analysis.sh` — Added new queries to informational echo list
+- `scripts/verify-codeql-setup.sh` — Added check_item entries for new query files
+- `docs/SECURITY_ANALYSIS.md` — Documented new queries with examples and fix guidance
+
+### Impact
+- Custom security query count: 5 → 7
+- PostMessageSecurity.ql expected to flag wildcard postMessage in fetch-interceptor.ts and mapy-content.ts
+- FetchPatching.ql expected to flag intentional fetch patching in bikerouter-interceptor.ts
+- No changes to extension runtime code
+
 ## 2026-02-18 - Docs: Fix release checklist to include git push step
 
 ### Summary

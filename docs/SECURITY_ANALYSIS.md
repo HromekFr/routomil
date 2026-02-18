@@ -35,6 +35,8 @@ The custom queries target vulnerabilities specific to Routomil:
 3. **Encryption vulnerabilities** - Key storage and IV generation
 4. **CSRF token mishandling** - Tokens in error messages or storage
 5. **Sensitive data leakage** - API responses in error messages
+6. **postMessage security** - Wildcard target origins, missing origin validation
+7. **Fetch API patching** - Monkey-patching window.fetch in content scripts
 
 ## Installation
 
@@ -147,6 +149,8 @@ npm run security:clean
 | **WeakEncryption.ql** | Warning (7.0) | CWE-326, CWE-330 | Detects weak IV generation, key storage, short keys |
 | **CsrfTokenMishandling.ql** | Error (7.5) | CWE-352, CWE-532 | Detects CSRF tokens in logs or unencrypted storage |
 | **SensitiveDataInErrors.ql** | Warning (6.5) | CWE-209, CWE-532 | Detects tokens or API responses in error messages |
+| **PostMessageSecurity.ql** | Warning (7.0) | CWE-345 | Detects wildcard postMessage origins, missing origin validation |
+| **FetchPatching.ql** | Recommendation (5.0) | CWE-693 | Detects window.fetch monkey-patching in content scripts |
 
 ### Query Details
 
@@ -285,6 +289,66 @@ throw new Error('Authentication failed');
 // ✅ Log safe metadata only
 throw new Error(`API error: ${response.status} ${response.statusText}`);
 ```
+
+#### PostMessageSecurity.ql
+
+**What it detects:**
+- `postMessage()` calls with wildcard `'*'` target origin, allowing any window/frame to receive the message
+- `addEventListener('message', ...)` handlers that don't check `event.origin`, allowing any window to send messages
+
+**Relevant files:** `fetch-interceptor.ts`, `bikerouter-interceptor.ts`, `bikerouter-content.ts`, `mapy-content.ts`
+
+**Example violations:**
+```typescript
+// ❌ Wildcard target origin - any frame can receive this
+window.postMessage({ type: 'DATA', payload: routeData }, '*');
+
+// ❌ No origin check - any window can trigger this handler
+window.addEventListener('message', (event) => {
+  if (event.data.type === 'DATA') {
+    processData(event.data.payload);
+  }
+});
+```
+
+**How to fix:**
+```typescript
+// ✅ Specify exact target origin
+window.postMessage({ type: 'DATA', payload: routeData }, 'https://mapy.cz');
+
+// ✅ Validate origin before processing
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'https://mapy.cz') return;
+  if (event.data.type === 'DATA') {
+    processData(event.data.payload);
+  }
+});
+```
+
+#### FetchPatching.ql
+
+**What it detects:**
+- Direct assignment to `window.fetch` (monkey-patching)
+- Saving original `window.fetch` reference before replacing it
+
+**Relevant files:** `bikerouter-interceptor.ts`, `fetch-interceptor.ts`
+
+**Note:** This is an intentional pattern in our extension's MAIN world content scripts — we intercept fetch to capture route data before it reaches the page. The query is a "recommendation" severity to ensure each new instance is consciously reviewed.
+
+**Example detection:**
+```typescript
+// ⚠️ Flagged as recommendation (intentional in our case)
+const originalFetch = window.fetch;
+window.fetch = async function patchedFetch(input, init) {
+  // intercept logic...
+  return originalFetch(input, init);
+};
+```
+
+**When this matters:**
+- Any new fetch patching should be deliberate and documented
+- Ensure patched fetch correctly forwards non-intercepted requests
+- Ensure error handling doesn't swallow fetch errors silently
 
 ## Interpreting Results
 
