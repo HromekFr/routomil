@@ -1,9 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/HromekFr/routomil/main/assets/routomil_banner.webp" alt="Routomil" width="500">
-</p>
-
-<p align="center">
-  <strong>Mapuj! Mapuj!</strong>
+  <img src="https://raw.githubusercontent.com/HromekFr/routomil/main/assets/routomil_banner.gif" alt="Routomil" width="500">
 </p>
 
 <p align="center">
