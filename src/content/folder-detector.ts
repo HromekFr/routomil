@@ -70,10 +70,16 @@ export function extractFolderName(): string | null {
     }
   }
 
-  // Fall back to document title (strip site name)
+  // Fall back to document title.
+  // Title format: "Hradec-Kolin - Saved • Mapy.com"
+  // Take the part before the first " - " separator, then strip any remaining "• Mapy.com".
   const title = document.title;
   if (title && title !== 'Mapy.cz' && title !== 'Mapy.com') {
-    return title.replace(/\s*[|–-]\s*Mapy\.(cz|com).*$/i, '').trim() || null;
+    const name = title
+      .split(' - ')[0]
+      .replace(/\s*[•·]\s*Mapy\.(cz|com)\s*$/i, '')
+      .trim();
+    return name || null;
   }
 
   return null;

@@ -212,10 +212,8 @@ async function handleSyncFolderGpx(
       `Parsed folder route: ${gpxRoute.points.length} points, ${gpxRoute.waypoints.length} waypoints, ${gpxRoute.totalDistance.toFixed(0)}m`
     );
 
-    // Use folder name if GPX name is generic
-    if (gpxRoute.name === 'Unnamed Route') {
-      gpxRoute.name = folderName;
-    }
+    // Always use the name provided by the caller (user may have edited it in the popup)
+    gpxRoute.name = folderName;
 
     // Get CSRF token
     const csrfToken = await getCsrfToken();
@@ -291,10 +289,8 @@ async function handleSyncRouteGpx(
 
     console.log(`Parsed route: ${gpxRoute.points.length} points, ${gpxRoute.totalDistance.toFixed(0)}m`);
 
-    // Override generic GPX name with the route name extracted from the page
-    if (gpxRoute.name === 'Unnamed Route') {
-      gpxRoute.name = routeName;
-    }
+    // Always use the name provided by the caller (user may have edited it in the popup)
+    gpxRoute.name = routeName;
 
     // Get CSRF token
     const csrfToken = await getCsrfToken();

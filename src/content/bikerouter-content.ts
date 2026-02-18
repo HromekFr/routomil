@@ -86,7 +86,8 @@ function sendMessage(message: unknown): Promise<BackgroundResponse> {
 }
 
 async function handleExtractAndSync(
-  activityType: ActivityType
+  activityType: ActivityType,
+  nameOverride?: string
 ): Promise<{ success: boolean; error?: string; errorCode?: string; courseUrl?: string }> {
   try {
     // Check authentication
@@ -122,7 +123,7 @@ async function handleExtractAndSync(
       return { success: false, error: 'No GeoJSON data received from route' };
     }
 
-    const routeName = routeData.routeName || 'BRouter Route';
+    const routeName = nameOverride || routeData.routeName || 'BRouter Route';
 
     // Send to service worker for parsing and upload
     const syncResponse = await sendMessage({
@@ -152,7 +153,7 @@ async function handleExtractAndSync(
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener(
-  (message: { type: string; activityType?: ActivityType }, _sender, sendResponse) => {
+  (message: { type: string; activityType?: ActivityType; routeName?: string }, _sender, sendResponse) => {
     if (message.type === 'CHECK_ROUTE') {
       const routeExists = hasRoute();
       sendResponse({
@@ -162,7 +163,7 @@ chrome.runtime.onMessage.addListener(
       return true;
     } else if (message.type === 'EXTRACT_AND_SYNC') {
       const activityType = message.activityType || 'cycling';
-      handleExtractAndSync(activityType).then(result => {
+      handleExtractAndSync(activityType, message.routeName).then(result => {
         sendResponse(result);
       });
       return true;

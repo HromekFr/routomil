@@ -1,5 +1,23 @@
 # Routomil Changelog
 
+## 2026-02-18 - Feature: Editable route name before sync
+
+### Summary
+Route names are now editable in the popup before syncing to Garmin. Previously, the name was displayed as read-only text and extracted independently by both the popup (for display) and the content script (for sync), meaning the displayed and synced names could diverge. Now the popup shows a text input pre-filled with the detected name, and the user-provided name flows all the way through to Garmin.
+
+### Files Modified
+- `src/popup/popup.html` — added `#route-name-input` text field and `#route-name-label` inside `#route-status`
+- `src/popup/popup.css` — added styles for `.route-name-input` and `.route-name-label`
+- `src/popup/popup.ts` — updated `showRouteFound()`/`showFolderFound()`/`showNoRouteStatus()` to toggle input visibility; sync handlers now read name from input and pass it to content scripts
+- `src/shared/messages.ts` — added optional `routeName` to `EXTRACT_AND_SYNC` and `folderName` to `EXTRACT_AND_SYNC_FOLDER` in `TabMessage`
+- `src/content/mapy-content.ts` — `handleSyncViaIntercept()` and `handleSyncFolderFromPopup()` accept optional name override; message listener passes names through
+- `src/content/bikerouter-content.ts` — `handleExtractAndSync()` accepts optional name override; message listener passes name through
+
+### Impact
+- Users can customize route/folder names before syncing to Garmin Connect
+- The name shown in the popup is always the name that gets synced (no double-extraction)
+- Leaving the name unchanged works exactly as before
+
 ## 2026-02-18 - Feature: Add bikerouter.de support
 
 ### Summary

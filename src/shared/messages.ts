@@ -57,8 +57,8 @@ export type ContentMessage =
 export type TabMessage =
   | { type: 'CHECK_ROUTE' }
   | { type: 'CHECK_FOLDER' }
-  | { type: 'EXTRACT_AND_SYNC'; activityType: ActivityType }
-  | { type: 'EXTRACT_AND_SYNC_FOLDER'; activityType: ActivityType };
+  | { type: 'EXTRACT_AND_SYNC'; activityType: ActivityType; routeName?: string }
+  | { type: 'EXTRACT_AND_SYNC_FOLDER'; activityType: ActivityType; folderName?: string };
 
 // Default settings
 export const DEFAULT_SETTINGS: ExtensionSettings = {
