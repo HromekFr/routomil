@@ -198,51 +198,81 @@ async function loadSyncHistory(): Promise<void> {
 }
 
 function renderSyncHistory(history: SyncHistoryEntry[]): void {
+  syncHistoryContainer.textContent = '';
+
   if (history.length === 0) {
-    // lgtm[js/dom-xss] - Static text, no user-controlled data
-    syncHistoryContainer.innerHTML = '<div class="history-empty">No routes synced yet</div>';
+    const emptyDiv = document.createElement('div');
+    emptyDiv.className = 'history-empty';
+    emptyDiv.textContent = 'No routes synced yet';
+    syncHistoryContainer.appendChild(emptyDiv);
     return;
   }
 
   // Show only last 5 entries
   const recentHistory = history.slice(0, 5);
 
-  // lgtm[js/dom-xss] - HTML structure with properly escaped user data (escapeHtml on line 207), static SVG icons, hardcoded Garmin URLs
-  syncHistoryContainer.innerHTML = recentHistory
-    .map(entry => {
-      const date = new Date(entry.syncedAt);
-      const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const statusClass = entry.success ? 'success' : 'error';
-      const statusIcon = entry.success
-        ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>'
-        : '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
+  for (const entry of recentHistory) {
+    const date = new Date(entry.syncedAt);
+    const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-      const link = entry.garminCourseId
-        ? `<a href="https://connect.garmin.com/modern/course/${entry.garminCourseId}" target="_blank" class="history-link">View</a>`
-        : '';
+    const item = document.createElement('div');
+    item.className = 'history-item';
 
-      return `
-        <div class="history-item">
-          <div class="history-status ${statusClass}">${statusIcon}</div>
-          <div class="history-content">
-            <div class="history-name">${escapeHtml(entry.routeName)}</div>
-            <div class="history-meta">
-              <span class="history-type">${entry.activityType}</span>
-              <span class="history-time">${timeStr}</span>
-            </div>
-          </div>
-          ${link}
-        </div>
-      `;
-    })
-    .join('');
+    // Status icon built with DOM APIs (no innerHTML)
+    const statusDiv = document.createElement('div');
+    statusDiv.className = `history-status ${entry.success ? 'success' : 'error'}`;
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('width', '14');
+    svg.setAttribute('height', '14');
+    svg.setAttribute('fill', 'currentColor');
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', entry.success
+      ? 'M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'
+      : 'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'
+    );
+    svg.appendChild(path);
+    statusDiv.appendChild(svg);
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'history-content';
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'history-name';
+    nameDiv.textContent = entry.routeName;
+
+    const metaDiv = document.createElement('div');
+    metaDiv.className = 'history-meta';
+
+    const typeSpan = document.createElement('span');
+    typeSpan.className = 'history-type';
+    typeSpan.textContent = entry.activityType;
+
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'history-time';
+    timeSpan.textContent = timeStr;
+
+    metaDiv.appendChild(typeSpan);
+    metaDiv.appendChild(timeSpan);
+    contentDiv.appendChild(nameDiv);
+    contentDiv.appendChild(metaDiv);
+    item.appendChild(statusDiv);
+    item.appendChild(contentDiv);
+
+    if (entry.garminCourseId) {
+      const link = document.createElement('a');
+      link.href = `https://connect.garmin.com/modern/course/${entry.garminCourseId}`;
+      link.target = '_blank';
+      link.className = 'history-link';
+      link.textContent = 'View';
+      item.appendChild(link);
+    }
+
+    syncHistoryContainer.appendChild(item);
+  }
 }
 
-function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
 
 async function checkCurrentRoute(): Promise<void> {
   try {
@@ -427,11 +457,16 @@ async function handleSyncFolder(): Promise<void> {
 
 function showSyncSuccess(courseUrl?: string): void {
   syncResult.className = 'sync-result success';
+  syncResult.textContent = '';
   if (courseUrl) {
     try {
       const safeUrl = validateUrl(courseUrl, ['garmin.com']);
-      // lgtm[js/dom-xss] - Static text with validated URL from Garmin API
-      syncResult.innerHTML = `Route synced! <a href="${safeUrl}" target="_blank">View in Garmin Connect</a>`;
+      syncResult.appendChild(document.createTextNode('Route synced! '));
+      const link = document.createElement('a');
+      link.href = safeUrl;
+      link.target = '_blank';
+      link.textContent = 'View in Garmin Connect';
+      syncResult.appendChild(link);
     } catch {
       syncResult.textContent = 'Route synced successfully!';
     }

@@ -35,13 +35,13 @@ async function handleExportRequest(): Promise<void> {
     const gpx = await fetchGpxViaSMap();
     window.postMessage(
       { type: 'ROUTOMIL_GPX_INTERCEPTED', gpx, source: ROUTOMIL_SOURCE },
-      '*'
+      window.location.origin
     );
   } catch (err) {
     const error = err instanceof Error ? err.message : 'GPX export failed';
     window.postMessage(
       { type: 'ROUTOMIL_GPX_INTERCEPTED', error, source: ROUTOMIL_SOURCE },
-      '*'
+      window.location.origin
     );
   }
 }

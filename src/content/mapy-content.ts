@@ -139,7 +139,7 @@ function requestInterceptedGpx(): Promise<string> {
     window.addEventListener('message', handler);
 
     // Trigger the export in MAIN world
-    window.postMessage({ type: 'ROUTOMIL_REQUEST_EXPORT', source: ROUTOMIL_SOURCE }, '*');
+    window.postMessage({ type: 'ROUTOMIL_REQUEST_EXPORT', source: ROUTOMIL_SOURCE }, window.location.origin);
   });
 }
 

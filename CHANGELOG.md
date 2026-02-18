@@ -1,5 +1,21 @@
 # Routomil Changelog
 
+## 2026-02-18 - Security: Eliminate all innerHTML/outerHTML and postMessage wildcard findings
+
+### Summary
+Resolved all remaining CodeQL security errors and warnings. Replaced all `innerHTML`/`outerHTML` assignments in `popup.ts` with safe DOM API equivalents (`createElement`, `createElementNS`, `textContent`). Changed `postMessage` calls in `mapy-content.ts` and `fetch-interceptor.ts` from wildcard `'*'` target origin to `window.location.origin`. Removed now-unused `escapeHtml` utility. The only remaining CodeQL finding is a RECOMMENDATION for intentional fetch-patching in `bikerouter-interceptor.ts`, which is already documented.
+
+### Files Modified
+- `src/popup/popup.ts` — Replaced `innerHTML` in `renderSyncHistory` and `showSyncSuccess` with DOM manipulation; removed unused `escapeHtml` function
+- `src/content/mapy-content.ts` — Changed `postMessage` target origin from `'*'` to `window.location.origin`
+- `src/content/fetch-interceptor.ts` — Changed `postMessage` target origin from `'*'` to `window.location.origin`
+
+### Impact
+- CodeQL ERRORS: 3 → 0
+- CodeQL WARNINGS: 3 → 0
+- Only 1 remaining finding: intentional fetch-patching RECOMMENDATION (accepted)
+- All 155 unit tests and 22 integration tests pass
+
 ## 2026-02-18 - Cleanup: Remove dead code identified by Knip
 
 ### Summary
