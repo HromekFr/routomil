@@ -1,5 +1,19 @@
 # Routomil Changelog
 
+## 2026-02-18 - Release 1.4.1
+
+### Summary
+Patch release packaging the new hand-drawn Routomil branding (icons, popup banner, README) and the animated GIF banner fix introduced since 1.4.0.
+
+### Changes Included
+- New hand-drawn extension icons (icon16/48/128.png) and popup banner replacing the generic blue header
+- Popup CSS updated: banner full-width, blue background removed, version pinned to bottom-right
+- README updated with centred banner, shields.io badges, and animated GIF banner fix for GitHub
+
+### Impact
+- Visual-only: no functional or API changes
+- Extension passes all 155 unit tests and 22 integration tests
+
 ## 2026-02-18 - Fix: README banner switched to GIF for GitHub animated image support
 
 ### Summary
