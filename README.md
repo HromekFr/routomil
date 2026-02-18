@@ -1,10 +1,10 @@
 # Routomil
 
-**Routomil** is a Chrome extension that syncs planned routes from [Mapy.cz](https://mapy.cz) directly to [Garmin Connect](https://connect.garmin.com) as courses.
+**Routomil** is a Chrome extension that syncs planned routes from [Mapy.cz](https://mapy.cz) and [bikerouter.de](https://bikerouter.de) directly to [Garmin Connect](https://connect.garmin.com) as courses.
 
 ## Features
 
-- One-click sync from Mapy.cz to Garmin Connect
+- One-click sync from Mapy.cz and bikerouter.de to Garmin Connect
 - Supports cycling and hiking activity types
 - Creates proper **courses** (not activities) in Garmin Connect
 - Preserves elevation data and calculates gain/loss
@@ -34,10 +34,18 @@
    - Log in on the Garmin page that opens (MFA/2FA supported)
 
 2. **Sync a Route:**
+
+   **From Mapy.cz:**
    - Go to [mapy.cz](https://mapy.cz) and plan a route
    - Open the extension popup
    - Select activity type (Cycling or Hiking)
    - Click "Sync to Garmin"
+
+   **From bikerouter.de:**
+   - Go to [bikerouter.de](https://bikerouter.de) and add at least 2 waypoints
+   - Wait for the route to finish loading (all segments must be computed)
+   - Open the extension popup
+   - Select activity type and click "Sync to Garmin"
 
 3. **View Synced Courses:**
    - Open the extension popup to see sync history
@@ -45,12 +53,21 @@
 
 ## How It Works
 
+### Mapy.cz
+
 1. User plans a route on Mapy.cz
 2. A MAIN world content script uses `SMap.Coords` (Mapy.cz's own coordinate codec) to decode the route's waypoints — including delta-encoded coordinates — and fetches GPX directly from the Mapy.cz export API
 3. GPX is converted to Garmin Course JSON format (distances, elevation, bounding box)
 4. CSRF token is extracted from Garmin Connect
 5. Course is uploaded via Garmin's Course API
 6. Course appears in Garmin Connect, ready to send to your device
+
+### bikerouter.de
+
+1. User builds a route on bikerouter.de by placing waypoints
+2. A MAIN world content script passively intercepts the BRouter API GeoJSON responses as each segment is computed, keying them by waypoint pair from the URL hash
+3. On sync, segments are stitched together in order (removing duplicate join points) and converted to Garmin Course JSON
+4. Course is uploaded to Garmin Connect via the same pipeline as Mapy.cz
 
 ## Development
 
@@ -85,16 +102,19 @@ routomil/
 │   │   ├── service-worker.ts # Main orchestrator
 │   │   ├── garmin-auth.ts    # Browser-tab auth + CSRF extraction
 │   │   └── garmin-api.ts     # Garmin Course API client
-│   ├── content/              # Content scripts for mapy.cz
-│   │   ├── fetch-interceptor.ts # MAIN world: SMap.Coords decode + GPX fetch
-│   │   ├── mapy-content.ts   # ISOLATED world: orchestrates sync flow
-│   │   └── route-extractor.ts
+│   ├── content/              # Content scripts
+│   │   ├── fetch-interceptor.ts     # MAIN world (mapy.cz): SMap.Coords decode + GPX fetch
+│   │   ├── mapy-content.ts          # ISOLATED world (mapy.cz): orchestrates sync flow
+│   │   ├── route-extractor.ts
+│   │   ├── bikerouter-interceptor.ts # MAIN world (bikerouter.de): BRouter GeoJSON capture
+│   │   └── bikerouter-content.ts    # ISOLATED world (bikerouter.de): orchestrates sync flow
 │   ├── popup/                # Extension popup UI
 │   │   ├── popup.html
 │   │   ├── popup.ts
 │   │   └── popup.css
 │   ├── lib/                  # Shared libraries
 │   │   ├── gpx-parser.ts     # GPX parsing + Course JSON conversion
+│   │   ├── brouter-parser.ts # BRouter GeoJSON parsing + segment stitching
 │   │   ├── mapy-api.ts       # Mapy.cz Export API client
 │   │   ├── mapy-url-parser.ts # Parse Mapy.cz route URLs
 │   │   └── storage.ts        # Encrypted token storage
@@ -116,7 +136,7 @@ routomil/
 
 - `storage` - Encrypted session token storage
 - `cookies` - Session cookie capture from Garmin Connect
-- Host permissions for `mapy.cz`, `en.mapy.cz`, `mapy.com`, `sso.garmin.com`, and `connect.garmin.com`
+- Host permissions for `mapy.cz`, `en.mapy.cz`, `mapy.com`, `bikerouter.de`, `sso.garmin.com`, and `connect.garmin.com`
 
 ## Security
 
@@ -131,8 +151,12 @@ routomil/
 - Session may have expired, log in again via the popup
 
 **Route not detected:**
-- Make sure you have a route planned on Mapy.cz
+- Make sure you have a route planned on Mapy.cz or at least 2 waypoints on bikerouter.de
 - Refresh the page and try again
+
+**bikerouter.de sync fails with "missing segments":**
+- Wait for the route to fully load before syncing — each segment must be computed by BRouter first
+- If you modified the route, the new segments need to load before syncing
 
 **Sync fails:**
 - Check your internet connection
