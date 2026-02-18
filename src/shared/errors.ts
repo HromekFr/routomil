@@ -22,6 +22,7 @@ export enum ErrorCode {
   ROUTE_NOT_FOUND = 'ROUTE_NOT_FOUND',
   ROUTE_EXTRACTION_FAILED = 'ROUTE_EXTRACTION_FAILED',
   GPX_PARSE_ERROR = 'GPX_PARSE_ERROR',
+  GEOJSON_PARSE_ERROR = 'GEOJSON_PARSE_ERROR',
 
   // Upload errors
   UPLOAD_FAILED = 'UPLOAD_FAILED',
@@ -55,6 +56,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   [ErrorCode.ROUTE_NOT_FOUND]: 'No route found on the current page',
   [ErrorCode.ROUTE_EXTRACTION_FAILED]: 'Failed to extract route data',
   [ErrorCode.GPX_PARSE_ERROR]: 'Failed to parse GPX data',
+  [ErrorCode.GEOJSON_PARSE_ERROR]: 'Failed to parse GeoJSON data',
 
   [ErrorCode.UPLOAD_FAILED]: 'Failed to upload course to Garmin Connect',
   [ErrorCode.UPLOAD_QUOTA_EXCEEDED]: 'Garmin Connect upload quota exceeded',

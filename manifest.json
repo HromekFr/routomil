@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Routomil",
   "version": "1.3.1",
-  "description": "Sync your planned routes from Mapy.cz to Garmin Connect with one click",
+  "description": "Sync your planned routes from Mapy.cz and bikerouter.de to Garmin Connect with one click",
   "icons": {
     "16": "assets/icons/icon16.png",
     "48": "assets/icons/icon48.png",
@@ -16,6 +16,7 @@
     "https://mapy.cz/*",
     "https://en.mapy.cz/*",
     "https://mapy.com/*",
+    "https://bikerouter.de/*",
     "https://sso.garmin.com/*",
     "https://connect.garmin.com/*"
   ],
@@ -46,6 +47,25 @@
       ],
       "css": [
         "mapy-content.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://bikerouter.de/*"
+      ],
+      "js": [
+        "bikerouter-interceptor.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://bikerouter.de/*"
+      ],
+      "js": [
+        "bikerouter-content.js"
       ],
       "run_at": "document_idle"
     }

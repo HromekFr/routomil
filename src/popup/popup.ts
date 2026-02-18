@@ -248,14 +248,28 @@ async function checkCurrentRoute(): Promise<void> {
       return;
     }
 
-    // Check if tab is on mapy.cz
+    // Check if tab is on a supported site
     const url = tab.url || '';
-    if (!url.includes('mapy.cz') && !url.includes('mapy.com')) {
+    const isMapy = url.includes('mapy.cz') || url.includes('mapy.com');
+    const isBikeRouter = url.includes('bikerouter.de');
+
+    if (!isMapy && !isBikeRouter) {
       showNoRouteStatus();
       return;
     }
 
-    // Check for folder first, then route
+    if (isBikeRouter) {
+      // bikerouter.de: only route sync (no folder)
+      const routeResponse = await sendMessageToTab(tab.id, { type: 'CHECK_ROUTE' }).catch(() => null);
+      if (routeResponse?.hasRoute) {
+        showRouteFound(routeResponse.routeName || 'BRouter Route');
+      } else {
+        showNoRouteStatus();
+      }
+      return;
+    }
+
+    // Check for folder first, then route (mapy.cz)
     const [folderResponse, routeResponse] = await Promise.all([
       sendMessageToTab(tab.id, { type: 'CHECK_FOLDER' }).catch(() => null),
       sendMessageToTab(tab.id, { type: 'CHECK_ROUTE' }).catch(() => null),
@@ -294,7 +308,7 @@ function showFolderFound(folderName: string): void {
 
 function showNoRouteStatus(): void {
   const statusMessage = routeStatus.querySelector('.status-message') as HTMLElement;
-  statusMessage.textContent = 'Open a route or folder on mapy.cz';
+  statusMessage.textContent = 'Open a route or folder on mapy.cz or bikerouter.de';
   statusMessage.className = 'status-message no-route';
   syncControls.classList.add('hidden');
   folderSyncControls.classList.add('hidden');
