@@ -93,8 +93,10 @@ Use minimal TDD approach for major implementation changes:
 2. Security scan clean: `npm run security` (fix all errors, review warnings)
 3. Build succeeds: `npm run build`
 4. `CHANGELOG.md` updated
-5. Version synced: `npm version patch` (auto-syncs manifest.json)
-6. Package: `npm run package`
+5. Version synced: `npm version patch` (auto-creates git tag + syncs manifest.json)
+6. Push commits and tag: `git push --follow-tags`
+
+**Note:** The release workflow (`.github/workflows/release.yml`) automatically packages the extension and creates a GitHub release when the tag is pushed.
 
 ## Resources
 
