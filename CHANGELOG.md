@@ -1,5 +1,22 @@
 # Routomil Changelog
 
+## 2026-02-18 - Tooling: Integrate Knip dead code analysis
+
+### Summary
+Added Knip for automated dead code detection. Finds unused files, exports, dependencies, and types. Integrated following the same pattern as the existing CodeQL security analysis (npm scripts with namespace prefix). This would have caught `button-injector.ts` (240 lines of unused code) automatically.
+
+### Files Created
+- `knip.config.ts` — Knip configuration with explicit entry points matching webpack config; project covers `src/`, `tests/`, `scripts/`; `@types/chrome`, `@types/jsdom`, `jsdom` in ignoreDependencies (ambient types / string-referenced by jest config)
+
+### Files Modified
+- `package.json` — Added `knip` devDependency; added `deadcode` and `deadcode:fix` npm scripts
+- `CLAUDE.md` — Added `deadcode`/`deadcode:fix` commands to Commands section; added dead code check to Release Checklist (step 3)
+
+### Impact
+- `npm run deadcode` reports unused files, exports, and dependencies
+- `npm run deadcode:fix` auto-removes unused exports
+- Release checklist now includes dead code review step
+
 ## 2026-02-18 - Cleanup: Remove dead button-injector.ts code
 
 ### Summary
