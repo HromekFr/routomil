@@ -1,5 +1,16 @@
 # Routomil Changelog
 
+## 2026-02-18 - Fix: README banner switched to GIF for GitHub animated image support
+
+### Summary
+GitHub's Camo image proxy strips animation from WebP files, so the README banner was displaying as a static image. Switched README banner to GIF (the only format reliably animated through GitHub's proxy). Removed the "Mapuj! Mapuj!" tagline.
+
+### Files Modified
+- `README.md` — banner switched from `routomil_banner.webp` to `routomil_banner.gif`; tagline removed
+
+### Impact
+- Banner animates correctly on GitHub
+
 ## 2026-02-18 - Chore: New branding, icon and banner
 
 ### Summary
