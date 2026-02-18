@@ -1,5 +1,32 @@
 # Routomil Changelog
 
+## 2026-02-18 - Docs: Fix release checklist to include git push step
+
+### Summary
+Updated release checklist in CLAUDE.md to include pushing commits and tags to trigger the automated release workflow. Previously, the checklist ended with `npm version patch`, which could lead to releases being created locally but not pushed to GitHub, causing version mismatches between local and remote repositories.
+
+### Files Modified
+- `CLAUDE.md` — Release Checklist section updated: added step 6 (`git push --follow-tags`), clarified that `npm version patch` auto-creates git tags, removed manual packaging step (handled by CI), added note about automated release workflow
+
+### Impact
+- Prevents future version sync issues between local and remote repositories
+- Clarifies the automated release workflow process
+- Documentation-only change, no code modifications
+
+## 2026-02-18 - Release 1.4.1
+
+### Summary
+Patch release packaging the new hand-drawn Routomil branding (icons, popup banner, README) and the animated GIF banner fix introduced since 1.4.0.
+
+### Changes Included
+- New hand-drawn extension icons (icon16/48/128.png) and popup banner replacing the generic blue header
+- Popup CSS updated: banner full-width, blue background removed, version pinned to bottom-right
+- README updated with centred banner, shields.io badges, and animated GIF banner fix for GitHub
+
+### Impact
+- Visual-only: no functional or API changes
+- Extension passes all 155 unit tests and 22 integration tests
+
 ## 2026-02-18 - Fix: README banner switched to GIF for GitHub animated image support
 
 ### Summary
