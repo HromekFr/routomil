@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Routomil",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Sync your planned routes from Mapy.cz and bikerouter.de to Garmin Connect with one click",
   "icons": {
     "16": "assets/icons/icon16.png",
