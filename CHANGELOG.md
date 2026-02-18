@@ -1,5 +1,34 @@
 # Routomil Changelog
 
+## 2026-02-18 - Feature: Add bikerouter.de support
+
+### Summary
+Added support for syncing cycling routes from bikerouter.de to Garmin Connect. bikerouter.de builds routes incrementally via the BRouter API, returning GeoJSON segments. The extension passively intercepts these responses in the MAIN world, stitches them on demand, and uploads the combined route to Garmin Connect.
+
+### Approach
+- MAIN world content script (`bikerouter-interceptor.ts`) patches `window.fetch` to capture BRouter API responses keyed by waypoint pair
+- ISOLATED content script (`bikerouter-content.ts`) bridges popup messages to the MAIN world interceptor via `postMessage`
+- New `brouter-parser.ts` library parses BRouter GeoJSON and stitches multi-segment routes into a single `GpxRoute` compatible with the existing `convertGpxToGarminCourse()` pipeline
+- New `SYNC_ROUTE_GEOJSON` background message type handles the upload flow
+
+### Files Added
+- `src/lib/brouter-parser.ts` — GeoJSON parser and segment stitcher
+- `src/content/bikerouter-interceptor.ts` — MAIN world fetch interceptor
+- `src/content/bikerouter-content.ts` — ISOLATED content script
+- `tests/unit/brouter-parser.test.ts` — 14 unit tests for the parser
+
+### Files Modified
+- `src/shared/messages.ts` — add `SYNC_ROUTE_GEOJSON` message type
+- `src/shared/errors.ts` — add `GEOJSON_PARSE_ERROR` error code
+- `src/background/service-worker.ts` — add `handleSyncRouteGeoJson()`, update `notifyTabs()` for bikerouter.de
+- `manifest.json` — add `https://bikerouter.de/*` host permission and two new content script entries; update description
+- `webpack.config.js` — add `bikerouter-content` and `bikerouter-interceptor` entry points
+- `src/popup/popup.ts` — add `bikerouter.de` URL detection in `checkCurrentRoute()`, update no-route status message
+
+### Impact
+- Routes built on bikerouter.de can now be synced to Garmin Connect with one click
+- Existing Mapy.cz functionality unchanged
+
 ## 2026-02-17 - Fix: Coordinate-only routes failing with HTTP 500 (missing rp_aw + wrong detection)
 
 ### Summary
