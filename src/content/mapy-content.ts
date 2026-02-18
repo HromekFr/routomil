@@ -61,7 +61,7 @@ async function handleSyncFromPopup(activityType: ActivityType): Promise<{ succes
   }
 }
 
-async function handleSyncFolderFromPopup(activityType: ActivityType): Promise<{ success: boolean; error?: string; errorCode?: string; courseUrl?: string; waypointCount?: number }> {
+async function handleSyncFolderFromPopup(activityType: ActivityType, nameOverride?: string): Promise<{ success: boolean; error?: string; errorCode?: string; courseUrl?: string; waypointCount?: number }> {
   console.log('Mapy.cz → Garmin Sync: Starting folder sync from popup as', activityType);
 
   try {
@@ -92,7 +92,7 @@ async function handleSyncFolderFromPopup(activityType: ActivityType): Promise<{ 
     const syncResponse = await sendMessage({
       type: 'SYNC_FOLDER_GPX',
       gpxContent,
-      folderName: folderName || 'Mapy.cz Folder',
+      folderName: nameOverride || folderName || 'Mapy.cz Folder',
       activityType,
     });
 
@@ -148,7 +148,8 @@ function requestInterceptedGpx(): Promise<string> {
  * Used for routes with coordinate-type waypoints where the URL's rc is delta-encoded.
  */
 async function handleSyncViaIntercept(
-  activityType: ActivityType
+  activityType: ActivityType,
+  nameOverride?: string
 ): Promise<{ success: boolean; error?: string; errorCode?: string; courseUrl?: string }> {
   console.log('Mapy.cz → Garmin Sync: Starting sync via GPX interception as', activityType);
 
@@ -158,8 +159,6 @@ async function handleSyncViaIntercept(
     if (!authResponse.success || !(authResponse.data as { isAuthenticated: boolean })?.isAuthenticated) {
       return { success: false, error: 'Please log in to Garmin Connect in the extension popup' };
     }
-
-    const routeName = extractRouteName() || 'Mapy.cz Route';
 
     // Request GPX via MAIN world interceptor
     let gpxContent: string;
@@ -176,6 +175,11 @@ async function handleSyncViaIntercept(
     if (!gpxContent.includes('<gpx')) {
       return { success: false, error: 'Intercepted content is not valid GPX' };
     }
+
+    // Determine route name: user override → GPX embedded name → DOM fallback
+    const gpxNameMatch = gpxContent.match(/<name>([^<]+)<\/name>/);
+    const gpxEmbeddedName = gpxNameMatch?.[1]?.trim() || null;
+    const routeName = nameOverride || gpxEmbeddedName || extractRouteName() || 'Mapy.cz Route';
 
     // Send GPX to service worker for parsing and upload
     const syncResponse = await sendMessage({
@@ -210,12 +214,13 @@ function sendMessage(message: unknown): Promise<BackgroundResponse> {
 }
 
 // Listen for messages from popup
-chrome.runtime.onMessage.addListener((message: { type: string; activityType?: ActivityType }, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message: { type: string; activityType?: ActivityType; routeName?: string; folderName?: string }, _sender, sendResponse) => {
   if (message.type === 'CHECK_ROUTE') {
     // Check if there's a route in the URL
     const currentUrl = window.location.href;
     const routeExists = hasRouteParams(currentUrl);
     const routeName = routeExists ? extractRouteName() : null;
+    console.log('[Routomil] CHECK_ROUTE: routeExists =', routeExists, 'routeName =', routeName);
     sendResponse({
       hasRoute: routeExists,
       routeName: routeName
@@ -235,12 +240,12 @@ chrome.runtime.onMessage.addListener((message: { type: string; activityType?: Ac
     // Always use the SMap decode path: SMap.Coords.stringToCoords handles both absolute
     // and delta-encoded rc correctly for all route types (named, coordinate, or mixed).
     const activityType = message.activityType || 'cycling';
-    handleSyncViaIntercept(activityType).then(result => { sendResponse(result); });
+    handleSyncViaIntercept(activityType, message.routeName).then(result => { sendResponse(result); });
     return true;
   } else if (message.type === 'EXTRACT_AND_SYNC_FOLDER') {
     // Extract and sync the folder
     const activityType = message.activityType || 'cycling';
-    handleSyncFolderFromPopup(activityType).then(result => {
+    handleSyncFolderFromPopup(activityType, message.folderName).then(result => {
       sendResponse(result);
     });
     return true;

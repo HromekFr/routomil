@@ -29,6 +29,11 @@ const syncFolderBtn = document.getElementById('sync-folder-btn') as HTMLButtonEl
 const folderActivityType = document.getElementById('folder-activity-type') as HTMLSelectElement;
 const folderWaypointWarning = document.getElementById('folder-waypoint-warning')!;
 const syncResult = document.getElementById('sync-result')!;
+const routeNameInput = document.getElementById('route-name-input') as HTMLInputElement;
+const routeNameLabel = document.getElementById('route-name-label')!;
+
+// Tracks the auto-detected name so we know if the user actually changed it
+let detectedName: string | null = null;
 
 // Initialize popup
 async function init(): Promise<void> {
@@ -275,6 +280,8 @@ async function checkCurrentRoute(): Promise<void> {
       sendMessageToTab(tab.id, { type: 'CHECK_ROUTE' }).catch(() => null),
     ]);
 
+    console.log('[Routomil] checkCurrentRoute: folderResponse =', folderResponse, 'routeResponse =', routeResponse);
+
     if (folderResponse?.hasFolder) {
       showFolderFound(folderResponse.folderName || 'Mapy.cz Folder');
     } else if (routeResponse?.hasRoute) {
@@ -290,8 +297,13 @@ async function checkCurrentRoute(): Promise<void> {
 
 function showRouteFound(routeName: string): void {
   const statusMessage = routeStatus.querySelector('.status-message') as HTMLElement;
-  statusMessage.textContent = `Route found: ${routeName}`;
-  statusMessage.className = 'status-message route-found';
+  statusMessage.textContent = '';
+  statusMessage.className = 'status-message route-found hidden';
+  routeNameLabel.textContent = 'Route found';
+  routeNameLabel.classList.remove('hidden');
+  detectedName = routeName;
+  routeNameInput.value = routeName;
+  routeNameInput.classList.remove('hidden');
   syncControls.classList.remove('hidden');
   folderSyncControls.classList.add('hidden');
   syncResult.classList.add('hidden');
@@ -299,8 +311,13 @@ function showRouteFound(routeName: string): void {
 
 function showFolderFound(folderName: string): void {
   const statusMessage = routeStatus.querySelector('.status-message') as HTMLElement;
-  statusMessage.textContent = `Folder found: ${folderName}`;
-  statusMessage.className = 'status-message route-found';
+  statusMessage.textContent = '';
+  statusMessage.className = 'status-message route-found hidden';
+  routeNameLabel.textContent = 'Folder found';
+  routeNameLabel.classList.remove('hidden');
+  detectedName = folderName;
+  routeNameInput.value = folderName;
+  routeNameInput.classList.remove('hidden');
   syncControls.classList.add('hidden');
   folderSyncControls.classList.remove('hidden');
   syncResult.classList.add('hidden');
@@ -310,6 +327,9 @@ function showNoRouteStatus(): void {
   const statusMessage = routeStatus.querySelector('.status-message') as HTMLElement;
   statusMessage.textContent = 'Open a route or folder on mapy.cz or bikerouter.de';
   statusMessage.className = 'status-message no-route';
+  detectedName = null;
+  routeNameLabel.classList.add('hidden');
+  routeNameInput.classList.add('hidden');
   syncControls.classList.add('hidden');
   folderSyncControls.classList.add('hidden');
   syncResult.classList.add('hidden');
@@ -330,10 +350,14 @@ async function handleSyncRoute(): Promise<void> {
     // Get activity type
     const activityType = syncActivityType.value as 'cycling' | 'hiking';
 
+    // Always send the name shown in the input — what the user sees is what Garmin gets
+    const routeName = routeNameInput.value.trim() || undefined;
+
     // Ask content script to extract and sync the route
     const response = await sendMessageToTab(tab.id, {
       type: 'EXTRACT_AND_SYNC',
-      activityType
+      activityType,
+      routeName,
     });
 
     if (response?.success) {
@@ -369,9 +393,13 @@ async function handleSyncFolder(): Promise<void> {
 
     const activityType = folderActivityType.value as 'cycling' | 'hiking';
 
+    // Always send the name shown in the input — what the user sees is what Garmin gets
+    const folderName = routeNameInput.value.trim() || undefined;
+
     const response = await sendMessageToTab(tab.id, {
       type: 'EXTRACT_AND_SYNC_FOLDER',
       activityType,
+      folderName,
     });
 
     if (response?.success) {
