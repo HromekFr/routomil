@@ -33,6 +33,10 @@ npm run test:mapy        # Mapy.cz export API test
 npm run package          # Package for Chrome Web Store
 npm run clean            # Remove dist/
 
+# Dead Code Analysis (Knip)
+npm run deadcode         # Dead code analysis (Knip)
+npm run deadcode:fix     # Auto-remove unused exports
+
 # Security Analysis (CodeQL CLI)
 npm run security         # Full security scan (database + all queries)
 npm run security:db      # Create CodeQL database from source
@@ -91,10 +95,11 @@ Use minimal TDD approach for major implementation changes:
 
 1. All tests pass: `npm run test:all`
 2. Security scan clean: `npm run security` (fix all errors, review warnings)
-3. Build succeeds: `npm run build`
-4. `CHANGELOG.md` updated
-5. Version synced: `npm version patch` (auto-creates git tag + syncs manifest.json)
-6. Push commits and tag: `git push --follow-tags`
+3. Dead code clean: `npm run deadcode` (review and fix any findings)
+4. Build succeeds: `npm run build`
+5. `CHANGELOG.md` updated
+6. Version synced: `npm version patch` (auto-creates git tag + syncs manifest.json)
+7. Push commits and tag: `git push --follow-tags`
 
 **Note:** The release workflow (`.github/workflows/release.yml`) automatically packages the extension and creates a GitHub release when the tag is pushed.
 
