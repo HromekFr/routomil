@@ -1,5 +1,32 @@
 # Routomil Changelog
 
+## 2026-02-18 - Chore: New branding, icon and banner
+
+### Summary
+Replaced the placeholder icon and text-based popup header with hand-drawn Routomil branding. Popup banner replaces the blue icon+title bar. README updated with a centred banner, tagline and shields.io badges.
+
+### Files Added
+- `assets/routomil_icon_cropped.jpg` — source artwork for extension icons
+- `assets/routomil_banner.webp` — static banner (converted from PNG, used in popup and README)
+- `assets/routomil_banner_animated.webp` — animated banner (converted from GIF)
+- `assets/icons/icon16.png`, `icon48.png`, `icon128.png` — regenerated from new artwork
+
+### Files Modified
+- `scripts/generate-icons.js` — updated to use JPG source instead of removed SVGs
+- `src/popup/popup.html` — header replaced with banner image; "Open Mapy.cz" footer link removed
+- `src/popup/popup.css` — header styles updated (banner full-width, blue bg removed); version pinned to bottom-right
+- `README.md` — new header with centred banner, "Mapuj! Mapuj!" tagline, build/release/license badges
+
+### Files Removed
+- `assets/icons/icon16.svg`, `icon48.svg`, `icon128.svg` — replaced by PNG icons generated from new artwork
+- `assets/routomil_banner.png` — superseded by WebP version
+- `assets/routomil_banner.gif` — superseded by animated WebP version
+
+### Impact
+- Extension popup now shows the hand-drawn banner instead of a generic blue header
+- README has a proper project banner and badge row
+- Icon generation pipeline updated; `npm run icons` regenerates PNGs from source JPG
+
 ## 2026-02-18 - Feature: Editable route name before sync
 
 ### Summary
